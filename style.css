@@ -1,0 +1,174 @@
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #efe1cf;
+    color: #2b1d14;
+}
+
+/* Navbar */
+.navbar {
+    height: 80px;
+    background: #2b1d14;
+    color: #f3d6a3;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 70px;
+}
+
+.logo {
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.navbar nav a {
+    color: white;
+    text-decoration: none;
+    margin-right: 30px;
+    font-size: 18px;
+}
+
+.navbar nav a:hover {
+    color: #d4a85f;
+}
+
+/* Hero */
+.hero {
+    min-height: calc(100vh - 80px);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 90px 40px 90px;
+    background: linear-gradient(135deg, #f4e4cf, #d6b895);
+}
+
+.hero-text {
+    width: 50%;
+    text-align: right;
+    margin-top: -80px;
+}
+
+.small-title {
+    color: #8a5a2b;
+    font-size: 50px!important;
+    font-weight: bold;
+    margin-bottom: 15px;
+}
+
+.hero-text h2 {
+    font-size: 30px;
+    margin-bottom: 25px;
+    line-height: 1.5;
+}
+
+.hero-text p {
+    font-size: 21px;
+    line-height: 1.8;
+}
+
+button {
+    margin-top: 25px;
+    padding: 15px 35px;
+    font-size: 20px;
+    background: transparent;
+    border: 2px solid #8a5a2b;
+    color: #2b1d14;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+button:hover {
+    background: #8a5a2b;
+    color: white;
+}
+
+/* Image */
+.hero-image {
+    width: 38%;
+    display: flex;
+    justify-content: center;
+}
+
+.hero-image img {
+    width: 380px;
+    height: 520px;
+    object-fit: cover;
+    border-radius: 45% 45% 10% 10%;
+    border: 6px solid #8a5a2b;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.35);
+}
+
+/* Footer */
+.footer {
+    background: #2b1d14;
+    color: #f3d6a3;
+    text-align: center;
+    padding: 18px;
+    font-size: 16px;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    .navbar {
+        height: auto;
+        padding: 18px 20px;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .logo {
+        font-size: 22px;
+    }
+
+    .navbar nav {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 12px;
+    }
+
+    .navbar nav a {
+        margin-right: 0;
+        font-size: 15px;
+    }
+
+    .hero {
+        min-height: auto;
+        flex-direction: column;
+        padding: 40px 20px;
+        text-align: center;
+    }
+
+    .hero-text {
+        width: 100%;
+        text-align: center;
+        margin-top: 0;
+    }
+
+    .small-title {
+        font-size: 38px;
+    }
+
+    .hero-text h2 {
+        font-size: 24px;
+    }
+
+    .hero-text p {
+        font-size: 18px;
+    }
+
+    .hero-image {
+        width: 100%;
+        margin-top: 30px;
+    }
+
+    .hero-image img {
+        width: 280px;
+        height: 380px;
+    }
+
+    button {
+        font-size: 18px;
+        padding: 13px 28px;
+    }
+}

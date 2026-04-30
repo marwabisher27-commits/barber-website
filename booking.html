@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>קביעת תור | Ali Kanaan Barber Shop</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="navbar">
+    <div class="logo">Ali Kanaan Barber Shop ✂</div>
+
+    <nav>
+        <a href="index.html">דף הבית</a>
+        <a href="about.html">אודות</a>
+        <a href="booking.html">שירותים</a>
+        <a href="products.html">מוצרים</a>
+        <a href="#">צור קשר</a>
+    </nav>
+</header>
+
+<section class="booking-page">
+    <h1>קביעת תור</h1>
+    <p>בחר יום, שעה ושירות — ואנחנו נדאג לשאר.</p>
+
+    <div class="booking-box">
+        <label>בחר שירות</label>
+        <select id="serviceSelect">
+            <option value="">בחר שירות</option>
+            <option value="תספורת מבוגרים">תספורת מבוגרים - ₪70</option>
+            <option value="תספורת ילדים">תספורת ילדים - ₪30</option>
+            <option value="סידור זקן">סידור זקן - ₪20</option>
+        </select>
+
+        <label>בחר יום</label>
+        <div class="days-grid" id="daysGrid"></div>
+
+        <label>בחר שעה</label>
+        <div class="times-grid" id="timesGrid">
+            <p class="choose-day-text">בחר יום כדי לראות שעות זמינות</p>
+        </div>
+
+        <input type="text" id="customerName" placeholder="שם מלא *">
+        <input type="tel" id="customerPhone" placeholder="מספר טלפון *" pattern="[0-9]{10}">
+
+        <button class="book-btn" onclick="confirmBooking()">אישור תור</button>
+    </div>
+</section>
+
+<footer class="footer">
+    <p>© 2026 Ali Kanaan Barber Shop | כל הזכויות שמורות</p>
+</footer>
+
+<script src="booking.js"></script>
+</body>
+</html>

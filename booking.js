@@ -7,7 +7,9 @@ const customerPhone = document.getElementById("customerPhone");
 
 let selectedDay = "";
 let selectedTime = "";
+let selectedService = "";
 
+const bookedTimes = [];
 const workingHours = {
     "ראשון": ["14:00", "23:00"],
     "שני": ["14:00", "23:00"],
@@ -36,11 +38,23 @@ for (let i = 0; i < 7; i++) {
 
     const button = document.createElement("button");
     button.className = "day-card";
-    button.innerHTML = `${dayName}<br>${dateText}`;
+
+    if (i === today.getDay()) {
+        button.classList.add("today");
+    }
+
+    button.innerHTML = `
+        <span>${dayName}</span>
+        <strong>${dateText}</strong>
+    `;
 
     if (workingHours[dayName] === null) {
         button.classList.add("closed");
-        button.innerHTML = `${dayName}<br>${dateText}<br>סגור`;
+        button.innerHTML = `
+            <span>${dayName}</span>
+            <strong>${dateText}</strong>
+            <small>🔒 סגור</small>
+        `;
         button.disabled = true;
     }
 
@@ -52,17 +66,24 @@ for (let i = 0; i < 7; i++) {
         button.classList.add("active");
 
         showTimes(dayName);
+        updateSummary();
     });
 
     daysGrid.appendChild(button);
 }
+
+serviceSelect.addEventListener("change", function() {
+    selectedService = serviceSelect.value;
+    updateSummary();
+});
+
 function showTimes(day) {
     timesGrid.innerHTML = "";
 
     const hours = workingHours[day];
 
     if (!hours) {
-        timesGrid.innerHTML = "<p>המספרה סגורה ביום זה</p>";
+        timesGrid.innerHTML = "<p class='choose-day-text'>המספרה סגורה ביום זה</p>";
         return;
     }
 
@@ -73,11 +94,19 @@ function showTimes(day) {
         button.className = "time-card";
         button.textContent = time;
 
+        if (bookedTimes.includes(day + " " + time)) {
+            button.classList.add("booked");
+            button.textContent = time + " תפוס";
+            button.disabled = true;
+        }
+
         button.addEventListener("click", function() {
             selectedTime = time;
 
             document.querySelectorAll(".time-card").forEach(btn => btn.classList.remove("active"));
             button.classList.add("active");
+
+            updateSummary();
         });
 
         timesGrid.appendChild(button);
@@ -97,16 +126,25 @@ function createTimes(start, end) {
         let hour = Math.floor(current / 60);
         let minute = current % 60;
 
-        let time =
-            String(hour).padStart(2, "0") +
-            ":" +
-            String(minute).padStart(2, "0");
+        result.push(
+            String(hour).padStart(2, "0") + ":" + String(minute).padStart(2, "0")
+        );
 
-        result.push(time);
         current += 30;
     }
 
     return result;
+}
+
+function updateSummary() {
+    const summary = document.getElementById("bookingSummary");
+
+    summary.innerHTML = `
+        <h3>סיכום התור</h3>
+        <p>שירות: ${selectedService || "לא נבחר"}</p>
+        <p>יום: ${selectedDay || "לא נבחר"}</p>
+        <p>שעה: ${selectedTime || "לא נבחר"}</p>
+    `;
 }
 
 function confirmBooking() {
@@ -120,7 +158,7 @@ function confirmBooking() {
         return;
     }
 
-    showMessage("התור נקבע בהצלחה");
+   showMessage("התור נקבע בהצלחה");
 }
 
 function showMessage(text) {
@@ -134,3 +172,21 @@ function showMessage(text) {
         message.remove();
     }, 1800);
 }
+
+function showSuccessPopup() {
+    const popup = document.createElement("div");
+    popup.className = "booking-popup";
+
+    popup.innerHTML = `
+        <div class="popup-card">
+            <div class="popup-icon">✓</div>
+            <h2>התור נקבע בהצלחה</h2>
+            <p>נחזור אליך בקרוב לאישור סופי</p>
+            <button onclick="location.href='index.html'">חזרה לדף הבית</button>
+        </div>
+    `;
+
+    document.body.appendChild(popup);
+}
+
+updateSummary();

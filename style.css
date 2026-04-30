@@ -456,6 +456,14 @@ body {
     color: #8a5a2b;
     margin: 5px 0;
 }
+.appointment-box {
+    background: #f7ead8;
+    border: 2px solid #8a5a2b;
+    border-radius: 12px;
+    padding: 15px;
+    font-size: 18px;
+    color: #2b1d14;
+}
 .thankyou-page {
     min-height: calc(100vh - 60px);
     background: linear-gradient(135deg, #efe1cf, #d6b895);
@@ -774,6 +782,24 @@ body {
     font-weight: bold;
     z-index: 9999;
 }
+.pay-appointment-btn {
+    display: block;
+    margin-top: 15px;
+    width: 100%;
+    padding: 16px;
+    background: #2b1d14;
+    color: #f3d6a3;
+    text-decoration: none;
+    border-radius: 12px;
+    font-size: 22px;
+    font-weight: bold;
+    box-sizing: border-box;
+}
+
+.pay-appointment-btn:hover {
+    background: #8a5a2b;
+    color: white;
+}
 .booking-page {
     position: relative;
 }
@@ -996,4 +1022,181 @@ body {
 .main-booking-btn:hover {
     background: #6d431d;
     transform: translateY(-4px);
+}
+@media (max-width: 768px) {
+
+    body {
+        overflow-x: hidden;
+    }
+
+    .navbar {
+        flex-direction: column;
+        gap: 15px;
+        padding: 20px;
+    }
+
+    .navbar nav {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 12px;
+    }
+
+    .navbar nav a {
+        font-size: 16px;
+    }
+
+    .logo {
+        font-size: 24px;
+        text-align: center;
+    }
+
+    .hero,
+    .about-page,
+    .services-page,
+    .booking-page,
+    .contact-page,
+    .cart-page,
+    .checkout-page {
+        padding: 40px 20px;
+    }
+
+    .hero h1,
+    .services-page h1,
+    .booking-page h1,
+    .contact-card h1,
+    .about-card h1 {
+        font-size: 36px;
+    }
+
+    .hero p,
+    .services-page p,
+    .booking-page p,
+    .about-card p {
+        font-size: 18px;
+    }
+
+    .services-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 18px;
+    }
+
+    .service-card img {
+        height: 250px;
+    }
+
+    .products-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 18px;
+    }
+
+    .product-card img {
+        height: 200px;
+    }
+
+    .days-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .times-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .booking-box {
+        padding: 25px;
+    }
+
+    .booking-logo,
+    .contact-logo {
+        position: static;
+        width: 130px;
+        margin-bottom: 20px;
+    }
+
+    .about-logo {
+        position: static;
+        width: 120px;
+        height: 120px;
+        margin-bottom: 20px;
+    }
+
+    .about-card {
+        padding: 35px 20px;
+    }
+
+    .about-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .cart-item {
+        grid-template-columns: 1fr;
+        text-align: center;
+        gap: 15px;
+        padding: 20px;
+    }
+
+    .cart-item img {
+        width: 120px;
+        height: 120px;
+        margin: auto;
+    }
+
+    .qty {
+        justify-content: center;
+    }
+
+    .cart-actions {
+        flex-wrap: wrap;
+    }
+
+    .checkout-form {
+        width: 100%;
+    }
+
+    .contact-card,
+    .booking-box,
+    .about-card {
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .footer {
+        padding: 20px;
+        text-align: center;
+    }
+}
+.hero {
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 10px 20px 30px;
+    gap: 15px;
+}
+
+.hero-image {
+    width: 45%;
+}
+
+.hero-image img {
+    width: 100%;
+    max-width: 320px;
+    height: auto;
+    margin-top: 40px;
+
+}
+
+.hero-text {
+    width: 55%;
+    margin-top: 10px;
+    text-align: right;
+}
+
+.hero-text h1,
+.hero-text h2 {
+    font-size: 28px;
+}
+
+.hero-text p {
+    font-size: 16px;
+    line-height: 1.6;
 }

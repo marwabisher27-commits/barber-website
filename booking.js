@@ -4,12 +4,14 @@ const timesGrid = document.getElementById("timesGrid");
 const serviceSelect = document.getElementById("serviceSelect");
 const customerName = document.getElementById("customerName");
 const customerPhone = document.getElementById("customerPhone");
+const appointmentPaymentMethod = document.getElementById("appointmentPaymentMethod");
 
 let selectedDay = "";
 let selectedTime = "";
 let selectedService = "";
 
 const bookedTimes = [];
+
 const workingHours = {
     "ראשון": ["14:00", "23:00"],
     "שני": ["14:00", "23:00"],
@@ -77,6 +79,8 @@ serviceSelect.addEventListener("change", function() {
     updateSummary();
 });
 
+appointmentPaymentMethod.addEventListener("change", updateSummary);
+
 function showTimes(day) {
     timesGrid.innerHTML = "";
 
@@ -93,12 +97,6 @@ function showTimes(day) {
         const button = document.createElement("button");
         button.className = "time-card";
         button.textContent = time;
-
-        if (bookedTimes.includes(day + " " + time)) {
-            button.classList.add("booked");
-            button.textContent = time + " תפוס";
-            button.disabled = true;
-        }
 
         button.addEventListener("click", function() {
             selectedTime = time;
@@ -144,11 +142,19 @@ function updateSummary() {
         <p>שירות: ${selectedService || "לא נבחר"}</p>
         <p>יום: ${selectedDay || "לא נבחר"}</p>
         <p>שעה: ${selectedTime || "לא נבחר"}</p>
+        <p>תשלום: ${appointmentPaymentMethod.value || "לא נבחר"}</p>
     `;
 }
 
 function confirmBooking() {
-    if (serviceSelect.value === "" || selectedDay === "" || selectedTime === "" || customerName.value === "" || customerPhone.value === "") {
+    if (
+        serviceSelect.value === "" ||
+        selectedDay === "" ||
+        selectedTime === "" ||
+        appointmentPaymentMethod.value === "" ||
+        customerName.value === "" ||
+        customerPhone.value === ""
+    ) {
         showMessage("נא למלא את כל הפרטים");
         return;
     }
@@ -158,7 +164,14 @@ function confirmBooking() {
         return;
     }
 
-   showMessage("התור נקבע בהצלחה");
+    localStorage.setItem("appointment", JSON.stringify({
+        service: serviceSelect.value,
+        day: selectedDay,
+        time: selectedTime,
+        payment: appointmentPaymentMethod.value
+    }));
+
+    showMessage("התור נקבע בהצלחה");
 }
 
 function showMessage(text) {
@@ -171,22 +184,6 @@ function showMessage(text) {
     setTimeout(function() {
         message.remove();
     }, 1800);
-}
-
-function showSuccessPopup() {
-    const popup = document.createElement("div");
-    popup.className = "booking-popup";
-
-    popup.innerHTML = `
-        <div class="popup-card">
-            <div class="popup-icon">✓</div>
-            <h2>התור נקבע בהצלחה</h2>
-            <p>נחזור אליך בקרוב לאישור סופי</p>
-            <button onclick="location.href='index.html'">חזרה לדף הבית</button>
-        </div>
-    `;
-
-    document.body.appendChild(popup);
 }
 
 updateSummary();

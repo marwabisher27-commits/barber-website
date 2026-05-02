@@ -1,7 +1,7 @@
-import { db, collection, addDoc } from "./firebase.js";
+import { db, collection, addDoc, doc, getDoc, setDoc } from "./firebase.js";
+
 const daysGrid = document.getElementById("daysGrid");
 const timesGrid = document.getElementById("timesGrid");
-
 const serviceSelect = document.getElementById("serviceSelect");
 const customerName = document.getElementById("customerName");
 const customerPhone = document.getElementById("customerPhone");
@@ -10,8 +10,6 @@ const appointmentPaymentMethod = document.getElementById("appointmentPaymentMeth
 let selectedDay = "";
 let selectedTime = "";
 let selectedService = "";
-
-const bookedTimes = [];
 
 const workingHours = {
     "ראשון": ["14:00", "23:00"],
@@ -26,16 +24,7 @@ const workingHours = {
 const dayNames = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];
 
 const today = new Date();
-
 const sunday = new Date(today);
-
-const currentDay = today.getDay();
-
-if (currentDay === 0) {
-    sunday.setDate(today.getDate());
-} else {
-    sunday.setDate(today.getDate() - currentDay);
-}
 sunday.setDate(today.getDate() - today.getDay());
 
 for (let i = 0; i < 7; i++) {
@@ -50,23 +39,15 @@ for (let i = 0; i < 7; i++) {
 
     const button = document.createElement("button");
     button.className = "day-card";
+    button.innerHTML = `<span>${dayName}</span><strong>${dateText}</strong>`;
 
     if (i === today.getDay()) {
         button.classList.add("today");
     }
 
-    button.innerHTML = `
-        <span>${dayName}</span>
-        <strong>${dateText}</strong>
-    `;
-
     if (workingHours[dayName] === null) {
         button.classList.add("closed");
-        button.innerHTML = `
-            <span>${dayName}</span>
-            <strong>${dateText}</strong>
-            <small>🔒 סגור</small>
-        `;
+        button.innerHTML = `<span>${dayName}</span><strong>${dateText}</strong><small>🔒 סגור</small>`;
         button.disabled = true;
     }
 
@@ -77,7 +58,7 @@ for (let i = 0; i < 7; i++) {
         document.querySelectorAll(".day-card").forEach(btn => btn.classList.remove("active"));
         button.classList.add("active");
 
-        showTimes(dayName);
+        showTimes(dayName, selectedDay);
         updateSummary();
     });
 
@@ -91,10 +72,10 @@ serviceSelect.addEventListener("change", function() {
 
 appointmentPaymentMethod.addEventListener("change", updateSummary);
 
-function showTimes(day) {
+async function showTimes(dayName, fullDay) {
     timesGrid.innerHTML = "";
 
-    const hours = workingHours[day];
+    const hours = workingHours[dayName];
 
     if (!hours) {
         timesGrid.innerHTML = "<p class='choose-day-text'>המספרה סגורה ביום זה</p>";
@@ -103,10 +84,20 @@ function showTimes(day) {
 
     const times = createTimes(hours[0], hours[1]);
 
-    times.forEach(function(time) {
+    for (const time of times) {
         const button = document.createElement("button");
         button.className = "time-card";
         button.textContent = time;
+
+        const slotId = fullDay.replaceAll(" ", "_").replace("/", "-") + "_" + time.replace(":", "-");
+        const slotRef = doc(db, "bookedSlots", slotId);
+        const slotSnap = await getDoc(slotRef);
+
+        if (slotSnap.exists()) {
+            button.classList.add("booked");
+            button.textContent = time + " תפוס";
+            button.disabled = true;
+        }
 
         button.addEventListener("click", function() {
             selectedTime = time;
@@ -118,12 +109,11 @@ function showTimes(day) {
         });
 
         timesGrid.appendChild(button);
-    });
+    }
 }
 
 function createTimes(start, end) {
     const result = [];
-
     let [startHour, startMinute] = start.split(":").map(Number);
     let [endHour, endMinute] = end.split(":").map(Number);
 
@@ -156,7 +146,7 @@ function updateSummary() {
     `;
 }
 
-function confirmBooking() {
+async function confirmBooking() {
     if (
         serviceSelect.value === "" ||
         selectedDay === "" ||
@@ -174,30 +164,46 @@ function confirmBooking() {
         return;
     }
 
+    const slotId = selectedDay.replaceAll(" ", "_").replace("/", "-") + "_" + selectedTime.replace(":", "-");
+    const slotRef = doc(db, "bookedSlots", slotId);
+    const slotSnap = await getDoc(slotRef);
+
+    if (slotSnap.exists()) {
+        showMessage("השעה הזאת כבר תפוסה");
+        return;
+    }
+
+    await setDoc(slotRef, {
+        day: selectedDay,
+        time: selectedTime,
+        createdAt: new Date()
+    });
+
+    await addDoc(collection(db, "appointments"), {
+        service: serviceSelect.value,
+        day: selectedDay,
+        time: selectedTime,
+        payment: appointmentPaymentMethod.value,
+        name: customerName.value,
+        phone: customerPhone.value,
+        createdAt: new Date()
+    });
+
     localStorage.setItem("appointment", JSON.stringify({
         service: serviceSelect.value,
         day: selectedDay,
         time: selectedTime,
         payment: appointmentPaymentMethod.value
     }));
-    addDoc(collection(db, "appointments"), {
-    service: serviceSelect.value,
-    day: selectedDay,
-    time: selectedTime,
-    payment: appointmentPaymentMethod.value,
-    name: customerName.value,
-    phone: customerPhone.value,
-    createdAt: new Date()
-});
 
     showMessage("התור נקבע בהצלחה");
+    showTimes(selectedDay.split(" ")[0], selectedDay);
 }
 
 function showMessage(text) {
     const message = document.createElement("div");
     message.className = "toast-message";
     message.textContent = text;
-
     document.body.appendChild(message);
 
     setTimeout(function() {

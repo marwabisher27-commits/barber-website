@@ -1,3 +1,4 @@
+import { db, collection, addDoc } from "./firebase.js";
 const daysGrid = document.getElementById("daysGrid");
 const timesGrid = document.getElementById("timesGrid");
 
@@ -25,7 +26,16 @@ const workingHours = {
 const dayNames = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];
 
 const today = new Date();
+
 const sunday = new Date(today);
+
+const currentDay = today.getDay();
+
+if (currentDay === 0) {
+    sunday.setDate(today.getDate());
+} else {
+    sunday.setDate(today.getDate() - currentDay);
+}
 sunday.setDate(today.getDate() - today.getDay());
 
 for (let i = 0; i < 7; i++) {
@@ -170,6 +180,15 @@ function confirmBooking() {
         time: selectedTime,
         payment: appointmentPaymentMethod.value
     }));
+    addDoc(collection(db, "appointments"), {
+    service: serviceSelect.value,
+    day: selectedDay,
+    time: selectedTime,
+    payment: appointmentPaymentMethod.value,
+    name: customerName.value,
+    phone: customerPhone.value,
+    createdAt: new Date()
+});
 
     showMessage("התור נקבע בהצלחה");
 }
@@ -187,3 +206,4 @@ function showMessage(text) {
 }
 
 updateSummary();
+window.confirmBooking = confirmBooking;

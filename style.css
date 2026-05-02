@@ -820,6 +820,7 @@ body {
 .booking-logo:hover {
     transform: scale(1.05);
 }
+
 .contact-page {
     min-height: 100vh;
     padding: 70px 90px;

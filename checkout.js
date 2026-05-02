@@ -1,3 +1,4 @@
+import { db, collection, addDoc } from "./firebase.js";
 const deliveryMethod = document.getElementById("deliveryMethod");
 const deliveryPrice = document.getElementById("deliveryPrice");
 const finalPrice = document.getElementById("finalPrice");
@@ -64,10 +65,23 @@ const checkoutForm = document.querySelector(".checkout-form");
 checkoutForm.addEventListener("submit", function(event) {
     event.preventDefault();
 
-    localStorage.removeItem("cart");
-    localStorage.removeItem("appointment");
+    const order = {
+    cart: cart,
+    appointment: appointment || null,
+    total: finalPrice.textContent,
+    delivery: deliveryMethod.value,
+    name: document.querySelector('input[placeholder*="שם"]').value,
+    phone: document.querySelector('input[placeholder*="טלפון"]').value,
+    address: document.querySelector('input[placeholder*="כתובת"]').value,
+    createdAt: new Date()
+};
 
-    showMessage("ההזמנה התקבלה בהצלחה");
+addDoc(collection(db, "orders"), order);
+
+localStorage.removeItem("cart");
+localStorage.removeItem("appointment");
+
+showMessage("ההזמנה התקבלה בהצלחה");
 
     setTimeout(function() {
         location.href = "thankyou.html";

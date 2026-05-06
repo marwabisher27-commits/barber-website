@@ -1344,32 +1344,16 @@ body {
 .admin-page {
     min-height: 100vh;
     padding: 60px;
-    background: #efe1cf;
+    background: linear-gradient(135deg, #efe1cf, #d6b895);
     text-align: center;
 }
 
 .admin-page h1 {
-    font-size: 46px;
+    font-size: 54px;
     color: #2b1d14;
+    margin-bottom: 30px;
 }
 
-.admin-section {
-    margin: 40px auto;
-    max-width: 900px;
-}
-
-.admin-section h2 {
-    color: #8a5a2b;
-}
-
-.admin-card {
-    background: #f7ead8;
-    border: 2px solid #8a5a2b;
-    border-radius: 15px;
-    padding: 18px;
-    margin: 15px 0;
-    text-align: right;
-}
 .admin-label {
     display: block;
     font-size: 22px;
@@ -1379,11 +1363,12 @@ body {
 }
 
 #adminDaySelect {
-    width: 320px;
+    width: 360px;
     padding: 14px;
-    font-size: 18px;
+    font-size: 20px;
     border: 2px solid #8a5a2b;
-    border-radius: 10px;
+    border-radius: 12px;
+    background: #f7ead8;
     margin-bottom: 35px;
 }
 
@@ -1393,34 +1378,4 @@ body {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 18px;
-}
-
-.admin-slot {
-    background: #f7ead8;
-    border: 2px solid #8a5a2b;
-    border-radius: 16px;
-    padding: 18px;
-    min-height: 120px;
-    box-shadow: 0 10px 22px rgba(0,0,0,0.12);
-}
-
-.admin-slot strong {
-    font-size: 24px;
-    color: #2b1d14;
-}
-
-.admin-slot p {
-    margin: 6px 0;
-    color: #2b1d14;
-    font-size: 16px;
-}
-
-.admin-slot.busy {
-    background: #2b1d14;
-    color: white;
-}
-
-.admin-slot.busy strong,
-.admin-slot.busy p {
-    color: white;
 }

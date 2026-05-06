@@ -14,37 +14,59 @@ const workingHours = {
     "שבת": ["10:00", "23:00"]
 };
 
+const dayNames = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];
+
 let allAppointments = [];
 
-async function loadAppointments() {
-    const snapshot = await getDocs(collection(db, "appointments"));
+function buildDayOptions() {
+    daySelect.innerHTML = "";
 
+    const dayNames = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];
+
+    const today = new Date();
+
+    let startSunday = new Date(today);
+    startSunday.setDate(today.getDate() - today.getDay());
+
+    for (let i = 0; i < 7; i++) {
+        const date = new Date(startSunday);
+        date.setDate(startSunday.getDate() + i);
+
+        const dayName = dayNames[date.getDay()];
+        const dateText =
+            String(date.getDate()).padStart(2, "0") +
+            "/" +
+            String(date.getMonth() + 1).padStart(2, "0");
+
+        const fullDay = dayName + " " + dateText;
+
+        const option = document.createElement("option");
+        option.value = fullDay;
+        option.textContent = fullDay;
+
+        daySelect.appendChild(option);
+    }
+
+    const todayName = dayNames[today.getDay()];
+    const todayText =
+        String(today.getDate()).padStart(2, "0") +
+        "/" +
+        String(today.getMonth() + 1).padStart(2, "0");
+
+    daySelect.value = todayName + " " + todayText;
+    showSchedule(daySelect.value);
+}
+
+async function loadAppointments() {
     allAppointments = [];
+
+    const snapshot = await getDocs(collection(db, "appointments"));
 
     snapshot.forEach(function(doc) {
         allAppointments.push(doc.data());
     });
 
     buildDayOptions();
-}
-
-function buildDayOptions() {
-    daySelect.innerHTML = "";
-
-    const uniqueDays = [...new Set(allAppointments.map(app => app.day))];
-
-    uniqueDays.forEach(function(day) {
-        const option = document.createElement("option");
-        option.value = day;
-        option.textContent = day;
-        daySelect.appendChild(option);
-    });
-
-    if (uniqueDays.length > 0) {
-        showSchedule(uniqueDays[0]);
-    } else {
-        scheduleBox.innerHTML = "<p>אין תורים כרגע</p>";
-    }
 }
 
 daySelect.addEventListener("change", function() {
@@ -94,7 +116,6 @@ function showSchedule(selectedDay) {
 
 function createTimes(start, end) {
     const result = [];
-
     let [startHour, startMinute] = start.split(":").map(Number);
     let [endHour, endMinute] = end.split(":").map(Number);
 

@@ -1201,14 +1201,7 @@ body {
     font-size: 16px;
     line-height: 1.6;
 }
-.manage-booking-link {
-    display: block;
-    margin-top: 15px;
-    color: #8a5a2b;
-    font-size: 18px;
-    font-weight: bold;
-    text-decoration: underline;
-}
+
 .manage-page {
     min-height: 100vh;
     padding: 70px 90px;
@@ -1271,4 +1264,17 @@ body {
 
 .found-booking p {
     color: white;
+}
+.manage-booking-link {
+    display: block !important;
+    margin: 18px auto 0;
+    color: #2b1d14;
+    background: #f7ead8;
+    border: 2px solid #8a5a2b;
+    padding: 12px 25px;
+    border-radius: 10px;
+    font-size: 20px;
+    font-weight: bold;
+    text-decoration: none;
+    text-align: center;
 }

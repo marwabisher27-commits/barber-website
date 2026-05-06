@@ -1,82 +1,118 @@
-import { db, collection, doc, deleteDoc } from "./firebase.js";
-import {
-    getDocs,
-    updateDoc
-} from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+import { db, collection } from "./firebase.js";
+import { getDocs } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 
-const appointmentsList = document.getElementById("appointmentsList");
-const ordersList = document.getElementById("ordersList");
+const daySelect = document.getElementById("adminDaySelect");
+const scheduleBox = document.getElementById("adminSchedule");
+
+const workingHours = {
+    "ראשון": ["14:00", "23:00"],
+    "שני": ["14:00", "23:00"],
+    "שלישי": ["14:00", "23:00"],
+    "רביעי": null,
+    "חמישי": ["14:00", "23:00"],
+    "שישי": ["14:00", "23:00"],
+    "שבת": ["10:00", "23:00"]
+};
+
+let allAppointments = [];
 
 async function loadAppointments() {
     const snapshot = await getDocs(collection(db, "appointments"));
 
-    appointmentsList.innerHTML = "";
+    allAppointments = [];
 
-    snapshot.forEach(function(document) {
-        const app = document.data();
-        const id = document.id;
+    snapshot.forEach(function(doc) {
+        allAppointments.push(doc.data());
+    });
 
-        appointmentsList.innerHTML += `
-            <div class="admin-card">
-                <p><strong>שם:</strong> ${app.name}</p>
-                <p><strong>טלפון:</strong> ${app.phone}</p>
-                <p><strong>שירות:</strong> ${app.service}</p>
-                <p><strong>יום:</strong> ${app.day}</p>
-                <p><strong>שעה:</strong> ${app.time}</p>
-                <p><strong>תשלום:</strong> ${app.payment}</p>
-                <p><strong>סטטוס:</strong> ${app.status || "ממתין לאישור"}</p>
+    buildDayOptions();
+}
 
-                <button onclick="approveAppointment('${id}')">אישור תור</button>
-                <button onclick="rejectAppointment('${id}')">דחיית תור</button>
-                <button onclick="deleteAppointment('${id}')">מחיקת תור</button>
-            </div>
-        `;
+function buildDayOptions() {
+    daySelect.innerHTML = "";
+
+    const uniqueDays = [...new Set(allAppointments.map(app => app.day))];
+
+    uniqueDays.forEach(function(day) {
+        const option = document.createElement("option");
+        option.value = day;
+        option.textContent = day;
+        daySelect.appendChild(option);
+    });
+
+    if (uniqueDays.length > 0) {
+        showSchedule(uniqueDays[0]);
+    } else {
+        scheduleBox.innerHTML = "<p>אין תורים כרגע</p>";
+    }
+}
+
+daySelect.addEventListener("change", function() {
+    showSchedule(daySelect.value);
+});
+
+function showSchedule(selectedDay) {
+    scheduleBox.innerHTML = "";
+
+    const dayName = selectedDay.split(" ")[0];
+    const hours = workingHours[dayName];
+
+    if (!hours) {
+        scheduleBox.innerHTML = "<p>המספרה סגורה ביום זה</p>";
+        return;
+    }
+
+    const times = createTimes(hours[0], hours[1]);
+
+    times.forEach(function(time) {
+        const appointment = allAppointments.find(function(app) {
+            return app.day === selectedDay && app.time === time;
+        });
+
+        const slot = document.createElement("div");
+        slot.className = "admin-slot";
+
+        if (appointment) {
+            slot.classList.add("busy");
+            slot.innerHTML = `
+                <strong>${time}</strong>
+                <p>${appointment.name}</p>
+                <p>${appointment.phone}</p>
+                <p>${appointment.service}</p>
+                <p>${appointment.payment === "cash" ? "מזומן במספרה" : "אשראי"}</p>
+            `;
+        } else {
+            slot.innerHTML = `
+                <strong>${time}</strong>
+                <p>פנוי</p>
+            `;
+        }
+
+        scheduleBox.appendChild(slot);
     });
 }
 
-async function approveAppointment(id) {
-    await updateDoc(doc(db, "appointments", id), {
-        status: "אושר"
-    });
+function createTimes(start, end) {
+    const result = [];
 
-    loadAppointments();
-}
+    let [startHour, startMinute] = start.split(":").map(Number);
+    let [endHour, endMinute] = end.split(":").map(Number);
 
-async function rejectAppointment(id) {
-    await updateDoc(doc(db, "appointments", id), {
-        status: "נדחה"
-    });
+    let current = startHour * 60 + startMinute;
+    let finish = endHour * 60 + endMinute;
 
-    loadAppointments();
-}
+    while (current <= finish) {
+        let hour = Math.floor(current / 60);
+        let minute = current % 60;
 
-async function deleteAppointment(id) {
-    await deleteDoc(doc(db, "appointments", id));
-    loadAppointments();
-}
+        result.push(
+            String(hour).padStart(2, "0") + ":" + String(minute).padStart(2, "0")
+        );
 
-async function loadOrders() {
-    const snapshot = await getDocs(collection(db, "orders"));
+        current += 30;
+    }
 
-    ordersList.innerHTML = "";
-
-    snapshot.forEach(function(document) {
-        const order = document.data();
-
-        ordersList.innerHTML += `
-            <div class="admin-card">
-                <p><strong>שם:</strong> ${order.name}</p>
-                <p><strong>טלפון:</strong> ${order.phone}</p>
-                <p><strong>כתובת:</strong> ${order.address}</p>
-                <p><strong>סה״כ:</strong> ${order.total}</p>
-            </div>
-        `;
-    });
+    return result;
 }
 
 loadAppointments();
-loadOrders();
-
-window.approveAppointment = approveAppointment;
-window.rejectAppointment = rejectAppointment;
-window.deleteAppointment = deleteAppointment;

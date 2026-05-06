@@ -2,23 +2,18 @@
 <html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>ניהול המספרה</title>
+    <title>ניהול תורים</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <section class="admin-page">
-    <h1>לוח ניהול</h1>
+    <h1>ניהול תורים</h1>
 
-    <div class="admin-section">
-        <h2>תורים</h2>
-        <div id="appointmentsList"></div>
-    </div>
+    <label class="admin-label">בחר יום</label>
+    <select id="adminDaySelect"></select>
 
-    <div class="admin-section">
-        <h2>הזמנות מוצרים</h2>
-        <div id="ordersList"></div>
-    </div>
+    <div id="adminSchedule" class="admin-schedule"></div>
 </section>
 
 <script type="module" src="admin.js"></script>

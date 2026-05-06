@@ -21,7 +21,7 @@ let allAppointments = [];
 function buildDayOptions() {
     daySelect.innerHTML = "";
 
-    const dayNames = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];
+    
 
     const today = new Date();
 

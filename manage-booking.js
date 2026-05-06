@@ -66,14 +66,14 @@ async function findBooking() {
 
 async function cancelBooking(appointmentId, day, time) {
     const confirmCancel = await showConfirmPopup(
-    "האם את/ה בטוח/ה שברצונך לבטל את התור?"
+    "האם אתה בטוח שברצונך לבטל את התור?"
 );
 
     if (!confirmCancel) {
         return;
     }
 
-    const slotId = day.replaceAll(" ", "_").replace("/", "-") + "_" + time.replace(":", "-");
+    const slotId = day.replaceAll(" ", "_").replaceAll("/", "-") + "_" + time.replace(":", "-");
 
     await deleteDoc(doc(db, "appointments", appointmentId));
     await deleteDoc(doc(db, "bookedSlots", slotId));
@@ -91,8 +91,7 @@ async function changeBooking(appointmentId, day, time) {
         return;
     }
 
-    const slotId = day.replaceAll(" ", "_").replace("/", "-") + "_" + time.replace(":", "-");
-
+    const slotId = day.replaceAll(" ", "_").replaceAll("/", "-") + "_" + time.replace(":", "-");
     await deleteDoc(doc(db, "appointments", appointmentId));
 await deleteDoc(doc(db, "bookedSlots", slotId));
 

@@ -1201,3 +1201,74 @@ body {
     font-size: 16px;
     line-height: 1.6;
 }
+.manage-booking-link {
+    display: block;
+    margin-top: 15px;
+    color: #8a5a2b;
+    font-size: 18px;
+    font-weight: bold;
+    text-decoration: underline;
+}
+.manage-page {
+    min-height: 100vh;
+    padding: 70px 90px;
+    background: linear-gradient(135deg, #efe1cf, #d6b895);
+    text-align: center;
+}
+
+.manage-page h1 {
+    font-size: 46px;
+    color: #2b1d14;
+}
+
+.manage-page p {
+    font-size: 20px;
+    color: #5a3b1e;
+}
+
+.manage-box {
+    max-width: 550px;
+    margin: 35px auto;
+    background: #f7ead8;
+    border: 3px solid #8a5a2b;
+    border-radius: 25px;
+    padding: 35px;
+    box-shadow: 0 18px 40px rgba(0,0,0,0.22);
+}
+
+.manage-box input {
+    width: 100%;
+    padding: 15px;
+    font-size: 18px;
+    border: 2px solid #8a5a2b;
+    border-radius: 10px;
+    box-sizing: border-box;
+    margin-bottom: 15px;
+}
+
+.manage-box button {
+    width: 100%;
+    padding: 15px;
+    background: #8a5a2b;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.found-booking {
+    margin-top: 25px;
+    background: #2b1d14;
+    color: white;
+    border-radius: 18px;
+    padding: 22px;
+}
+
+.found-booking h3 {
+    color: #f3d6a3;
+}
+
+.found-booking p {
+    color: white;
+}

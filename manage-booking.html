@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>ניהול תור | Ali Kanaan Barber Shop</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="navbar">
+    <div class="logo">Ali Kanaan Barber Shop ✂</div>
+</header>
+
+<section class="manage-page">
+    <h1>ביטול / שינוי תור</h1>
+    <p>הכנס מספר טלפון כדי למצוא את התור שלך</p>
+
+    <div class="manage-box">
+        <input type="tel" id="managePhone" placeholder="מספר טלפון">
+        <button onclick="findBooking()">חיפוש תור</button>
+
+        <div id="bookingResult"></div>
+    </div>
+</section>
+
+<script type="module" src="manage-booking.js"></script>
+</body>
+</html>

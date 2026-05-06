@@ -39,7 +39,7 @@ async function findBooking() {
                     ביטול תור
                 </button>
 
-                <button onclick="changeBooking()">
+                <button onclick="changeBooking('${appointmentId}', '${booking.day}', '${booking.time}')">
                     שינוי תור
                 </button>
             `;
@@ -65,7 +65,9 @@ async function findBooking() {
 }
 
 async function cancelBooking(appointmentId, day, time) {
-    const confirmCancel = confirm("האם את/ה בטוח/ה שברצונך לבטל את התור?");
+    const confirmCancel = await showConfirmPopup(
+    "האם את/ה בטוח/ה שברצונך לבטל את התור?"
+);
 
     if (!confirmCancel) {
         return;
@@ -76,14 +78,69 @@ async function cancelBooking(appointmentId, day, time) {
     await deleteDoc(doc(db, "appointments", appointmentId));
     await deleteDoc(doc(db, "bookedSlots", slotId));
 
-    alert("התור בוטל בהצלחה");
+    showToast("התור בוטל בהצלחה");
     findBooking();
 }
 
-function changeBooking() {
+async function changeBooking(appointmentId, day, time) {
+    const confirmChange = await showConfirmPopup(
+    "כדי לשנות תור, התור הישן יבוטל. להמשיך?"
+);
+
+    if (!confirmChange) {
+        return;
+    }
+
+    const slotId = day.replaceAll(" ", "_").replace("/", "-") + "_" + time.replace(":", "-");
+
+    await deleteDoc(doc(db, "appointments", appointmentId));
+await deleteDoc(doc(db, "bookedSlots", slotId));
+
+showToast("התור בוטל בהצלחה");
+findBooking();
+
     location.href = "booking.html";
 }
+function showConfirmPopup(message) {
+    return new Promise((resolve) => {
 
+        const popup = document.createElement("div");
+        popup.className = "confirm-popup";
+
+        popup.innerHTML = `
+            <div class="confirm-card">
+                <p>${message}</p>
+
+                <div class="confirm-buttons">
+                    <button class="yes-btn">אישור</button>
+                    <button class="no-btn">ביטול</button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(popup);
+
+        popup.querySelector(".yes-btn").onclick = () => {
+            popup.remove();
+            resolve(true);
+        };
+
+        popup.querySelector(".no-btn").onclick = () => {
+            popup.remove();
+            resolve(false);
+        };
+    });
+}
+function showToast(text) {
+    const message = document.createElement("div");
+    message.className = "toast-message";
+    message.textContent = text;
+    document.body.appendChild(message);
+
+    setTimeout(function() {
+        message.remove();
+    }, 1800);
+}
 window.findBooking = findBooking;
 window.cancelBooking = cancelBooking;
 window.changeBooking = changeBooking;

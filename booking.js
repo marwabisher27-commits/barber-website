@@ -225,7 +225,8 @@ if (serviceSelect.value === "תספורת ילדים") {
 
     let packageInfo = null;
 
-    if (serviceSelect.value === "5 תספורות מבוגרים") {
+    if (serviceSelect.value === 
+"5 תספורות מבוגרים") {
         packageInfo = {
             phone: customerPhone.value,
             type: "מבוגרים",
@@ -237,7 +238,8 @@ if (serviceSelect.value === "תספורת ילדים") {
         await setDoc(doc(db, "packages", customerPhone.value + "_adults"), packageInfo);
     }
 
-    if (serviceSelect.value === "5 תספורות ילדים") {
+    if (serviceSelect.value === 
+"5 תספורות מבוגרים") {
         packageInfo = {
             phone: customerPhone.value,
             type: "ילדים",

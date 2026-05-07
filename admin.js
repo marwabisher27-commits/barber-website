@@ -167,3 +167,4 @@ async function adminCancelBooking(appointmentId, day, time) {
 }
 
 window.adminCancelBooking = adminCancelBooking;
+loadAppointments();

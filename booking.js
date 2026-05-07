@@ -164,7 +164,7 @@ async function confirmBooking() {
         return;
     }
 
-    const slotId = selectedDay.replaceAll(" ", "_").replace("/", "-") + "_" + selectedTime.replace(":", "-");
+    const slotId = selectedDay.replaceAll(" ", "_").replaceAll("/", "-") + "_" + selectedTime.replace(":", "-");
     const slotRef = doc(db, "bookedSlots", slotId);
     const slotSnap = await getDoc(slotRef);
 
@@ -172,22 +172,94 @@ async function confirmBooking() {
         showMessage("השעה הזאת כבר תפוסה");
         return;
     }
+     let usedPackage = null;
 
+if (serviceSelect.value === "תספורת מבוגרים") {
+    const packageRef = doc(db, "packages", customerPhone.value + "_adults");
+    const packageSnap = await getDoc(packageRef);
+
+    if (packageSnap.exists() && packageSnap.data().remainingCuts > 0) {
+        const packageData = packageSnap.data();
+        usedPackage = {
+            type: "מבוגרים",
+            remainingBefore: packageData.remainingCuts,
+            remainingAfter: packageData.remainingCuts - 1
+        };
+
+        await setDoc(packageRef, {
+            ...packageData,
+            remainingCuts: packageData.remainingCuts - 1
+        });
+
+        appointmentPaymentMethod.value = "package";
+        showMessage("נותרו לך " + usedPackage.remainingAfter + " תספורות");
+    }
+}
+
+if (serviceSelect.value === "תספורת ילדים") {
+    const packageRef = doc(db, "packages", customerPhone.value + "_kids");
+    const packageSnap = await getDoc(packageRef);
+
+    if (packageSnap.exists() && packageSnap.data().remainingCuts > 0) {
+        const packageData = packageSnap.data();
+        usedPackage = {
+            type: "ילדים",
+            remainingBefore: packageData.remainingCuts,
+            remainingAfter: packageData.remainingCuts - 1
+        };
+
+        await setDoc(packageRef, {
+            ...packageData,
+            remainingCuts: packageData.remainingCuts - 1
+        });
+
+        appointmentPaymentMethod.value = "package";
+        showMessage("נותרו לך " + usedPackage.remainingAfter + " תספורות");
+    }
+}
     await setDoc(slotRef, {
         day: selectedDay,
         time: selectedTime,
         createdAt: new Date()
     });
 
-    await addDoc(collection(db, "appointments"), {
-        service: serviceSelect.value,
-        day: selectedDay,
-        time: selectedTime,
-        payment: appointmentPaymentMethod.value,
-        name: customerName.value,
-        phone: customerPhone.value,
-        createdAt: new Date()
-    });
+    let packageInfo = null;
+
+    if (serviceSelect.value === "5 תספורות מבוגרים") {
+        packageInfo = {
+            phone: customerPhone.value,
+            type: "מבוגרים",
+            totalCuts: 5,
+            remainingCuts: 5,
+            createdAt: new Date()
+        };
+
+        await setDoc(doc(db, "packages", customerPhone.value + "_adults"), packageInfo);
+    }
+
+    if (serviceSelect.value === "5 תספורות ילדים") {
+        packageInfo = {
+            phone: customerPhone.value,
+            type: "ילדים",
+            totalCuts: 5,
+            remainingCuts: 5,
+            createdAt: new Date()
+        };
+
+        await setDoc(doc(db, "packages", customerPhone.value + "_kids"), packageInfo);
+    }
+
+   await addDoc(collection(db, "appointments"), {
+    service: serviceSelect.value,
+    day: selectedDay,
+    time: selectedTime,
+    payment: appointmentPaymentMethod.value,
+    name: customerName.value,
+    phone: customerPhone.value,
+    package: packageInfo,
+    usedPackage: usedPackage,
+    createdAt: new Date()
+});
 
     localStorage.setItem("appointment", JSON.stringify({
         service: serviceSelect.value,

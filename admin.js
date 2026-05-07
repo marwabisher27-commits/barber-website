@@ -77,7 +77,7 @@ function showFullWeek() {
                         <p>${appointment.phone}</p>
                         <p>${appointment.service}</p>
                         <p>${appointment.payment === "cash" ? "מזומן במספרה" : "אשראי"}</p>
-                           ${appointment.package ? `<p>חבילה: ${appointment.package.type} | נותרו: ${appointment.package.remainingCuts}</p>` : ""}
+                           ${appointment.package ? `<p>חבילה: ${appointment.package.type} | נותרו: ${appointment.package.remainingCuts-1}</p>` : ""}
                            ${appointment.usedPackage ? `<p>שולם מחבילה | נותרו: ${appointment.usedPackage.remainingAfter}</p>` : ""}
                         <button onclick="adminCancelBooking('${appointment.id}', '${appointment.day}', '${appointment.time}')">
                             ביטול תור

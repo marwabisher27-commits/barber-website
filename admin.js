@@ -1,7 +1,6 @@
 import { db, collection, doc, deleteDoc } from "./firebase.js";
 import { getDocs } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 
-const daySelect = document.getElementById("adminDaySelect");
 const scheduleBox = document.getElementById("adminSchedule");
 
 const workingHours = {
@@ -15,22 +14,32 @@ const workingHours = {
 };
 
 const dayNames = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];
-
 let allAppointments = [];
 
-function buildDayOptions() {
-    daySelect.innerHTML = "";
+async function loadAppointments() {
+    const snapshot = await getDocs(collection(db, "appointments"));
+    allAppointments = [];
 
-    
+    snapshot.forEach(function(document) {
+        allAppointments.push({
+            id: document.id,
+            ...document.data()
+        });
+    });
+
+    showFullWeek();
+}
+
+function showFullWeek() {
+    scheduleBox.innerHTML = "";
 
     const today = new Date();
-
-    let startSunday = new Date(today);
-    startSunday.setDate(today.getDate() - today.getDay());
+    const sunday = new Date(today);
+    sunday.setDate(today.getDate() - today.getDay());
 
     for (let i = 0; i < 7; i++) {
-        const date = new Date(startSunday);
-        date.setDate(startSunday.getDate() + i);
+        const date = new Date(sunday);
+        date.setDate(sunday.getDate() + i);
 
         const dayName = dayNames[date.getDay()];
         const dateText =
@@ -40,95 +49,60 @@ function buildDayOptions() {
 
         const fullDay = dayName + " " + dateText;
 
-        const option = document.createElement("option");
-        option.value = fullDay;
-        option.textContent = fullDay;
+        const dayBox = document.createElement("div");
+        dayBox.className = "admin-day-box";
 
-        daySelect.appendChild(option);
-    }
+        dayBox.innerHTML = `<h2>${fullDay}</h2>`;
 
-    const todayName = dayNames[today.getDay()];
-    const todayText =
-        String(today.getDate()).padStart(2, "0") +
-        "/" +
-        String(today.getMonth() + 1).padStart(2, "0");
-
-    daySelect.value = todayName + " " + todayText;
-    showSchedule(daySelect.value);
-}
-
-async function loadAppointments() {
-    allAppointments = [];
-
-    const snapshot = await getDocs(collection(db, "appointments"));
-
-    snapshot.forEach(function(doc) {
-        allAppointments.push({
-    id: doc.id,
-    ...doc.data()
-});
-    });
-
-    buildDayOptions();
-}
-
-daySelect.addEventListener("change", function() {
-    showSchedule(daySelect.value);
-});
-
-function showSchedule(selectedDay) {
-    scheduleBox.innerHTML = "";
-
-    const dayName = selectedDay.split(" ")[0];
-    const hours = workingHours[dayName];
-
-    if (!hours) {
-        scheduleBox.innerHTML = `
-    <div class="admin-closed-day">
-        🔒 המספרה סגורה ביום זה
-    </div>
-`;
-        return;
-    }
-
-    const times = createTimes(hours[0], hours[1]);
-
-    times.forEach(function(time) {
-        const appointment = allAppointments.find(function(app) {
-            return app.day === selectedDay && app.time === time;
-        });
-
-        const slot = document.createElement("div");
-        slot.className = "admin-slot";
-
-        if (appointment) {
-            slot.classList.add("busy");
-            slot.innerHTML = `
-    <strong>${time}</strong>
-    <p>${appointment.name}</p>
-    <p>${appointment.phone}</p>
-    <p>${appointment.service}</p>
-    <p>${appointment.payment === "cash" ? "מזומן במספרה" : "אשראי"}</p>
-
-    <button onclick="adminCancelBooking('${appointment.id}', '${appointment.day}', '${appointment.time}')">
-        ביטול תור
-    </button>
-
-    <a class="admin-whatsapp"
-       href="https://wa.me/972${appointment.phone.substring(1)}"
-       target="_blank">
-        WhatsApp
-    </a>
-`;
-        } else {
-            slot.innerHTML = `
-                <strong>${time}</strong>
-                <p>פנוי</p>
+        if (workingHours[dayName] === null) {
+            dayBox.innerHTML += `
+                <div class="admin-closed-day">
+                    🔒 המספרה סגורה ביום זה
+                </div>
             `;
+        } else {
+            const times = createTimes(workingHours[dayName][0], workingHours[dayName][1]);
+
+            times.forEach(function(time) {
+                const appointment = allAppointments.find(function(app) {
+                    return app.day === fullDay && app.time === time;
+                });
+
+                const slot = document.createElement("div");
+                slot.className = "admin-slot";
+
+                if (appointment) {
+                    slot.classList.add("busy");
+                    slot.innerHTML = `
+                        <strong>${time}</strong>
+                        <p>${appointment.name}</p>
+                        <p>${appointment.phone}</p>
+                        <p>${appointment.service}</p>
+                        <p>${appointment.payment === "cash" ? "מזומן במספרה" : "אשראי"}</p>
+
+                        <button onclick="adminCancelBooking('${appointment.id}', '${appointment.day}', '${appointment.time}')">
+                            ביטול תור
+                        </button>
+
+                        <a class="admin-whatsapp"
+                           href="https://wa.me/972${appointment.phone.substring(1)}"
+                           target="_blank">
+                            WhatsApp
+                        </a>
+                    `;
+                } else {
+                    slot.innerHTML = `
+                        <strong>${time}</strong>
+                        <p>פנוי</p>
+                    `;
+                }
+
+                dayBox.appendChild(slot);
+            });
         }
 
-        scheduleBox.appendChild(slot);
-    });
+        scheduleBox.appendChild(dayBox);
+    }
 }
 
 function createTimes(start, end) {
@@ -152,9 +126,9 @@ function createTimes(start, end) {
 
     return result;
 }
+
 async function adminCancelBooking(appointmentId, day, time) {
     const ok = confirm("לבטל את התור הזה?");
-
     if (!ok) return;
 
     const slotId = day.replaceAll(" ", "_").replaceAll("/", "-") + "_" + time.replace(":", "-");
@@ -167,4 +141,5 @@ async function adminCancelBooking(appointmentId, day, time) {
 }
 
 window.adminCancelBooking = adminCancelBooking;
+
 loadAppointments();

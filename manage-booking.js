@@ -33,7 +33,7 @@ async function findBooking() {
 
         let buttons = "";
 
-        if (booking.payment === "cash") {
+        if (booking.payment === "cash" || booking.payment === "package" || booking.usedPackage || booking.package) {
             buttons = `
                 <button onclick="cancelBooking('${appointmentId}', '${booking.day}', '${booking.time}')">
                     ביטול תור
@@ -57,8 +57,12 @@ async function findBooking() {
                 <p>שירות: ${booking.service}</p>
                 <p>יום: ${booking.day}</p>
                 <p>שעה: ${booking.time}</p>
-                <p>תשלום: ${booking.payment === "cash" ? "מזומן במספרה" : "אשראי"}</p>
-                ${buttons}
+                <p>תשלום: ${booking.payment === "cash" ? "מזומן במספרה" : booking.payment === "package" ? "חבילה" : "אשראי"}</p>
+
+${booking.package ? `<p>חבילה: ${booking.package.type} | נותרו: ${booking.package.remainingCuts}</p>` : ""}
+${booking.usedPackage ? `<p>שולם מחבילה | נותרו: ${booking.usedPackage.remainingAfter}</p>` : ""}
+
+${buttons}
             </div>
         `;
     });

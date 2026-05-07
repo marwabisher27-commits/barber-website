@@ -1,6 +1,5 @@
 import { db, collection, doc, deleteDoc } from "./firebase.js";
-import { getDocs, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
-const scheduleBox = document.getElementById("adminSchedule");
+import { getDocs, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";const scheduleBox = document.getElementById("adminSchedule");
 
 const workingHours = {
     "ראשון": ["14:00", "23:00"],
@@ -138,8 +137,12 @@ async function adminCancelBooking(appointmentId, day, time) {
         const appointment = appointmentSnap.data();
 
         if (appointment.usedPackage) {
-            const typeKey = appointment.usedPackage.type === "מבוגרים" ? "_adults" : "_kids";
-            const packageRef = doc(db, "packages", appointment.phone + typeKey);
+            const packageId =
+                appointment.usedPackage.type === "מבוגרים"
+                    ? appointment.phone + "_adults"
+                    : appointment.phone + "_kids";
+
+            const packageRef = doc(db, "packages", packageId);
             const packageSnap = await getDoc(packageRef);
 
             if (packageSnap.exists()) {
@@ -147,7 +150,7 @@ async function adminCancelBooking(appointmentId, day, time) {
 
                 await setDoc(packageRef, {
                     ...packageData,
-                    remainingCuts: packageData.remainingCuts + 1
+                    remainingCuts: Math.min(packageData.remainingCuts + 1, 5)
                 });
             }
         }
@@ -158,7 +161,7 @@ async function adminCancelBooking(appointmentId, day, time) {
     await deleteDoc(doc(db, "appointments", appointmentId));
     await deleteDoc(doc(db, "bookedSlots", slotId));
 
-    showAdminToast("התור בוטל בהצלחה");
+    showSuccessPopup("התור בוטל בהצלחה");
     loadAppointments();
 }
 

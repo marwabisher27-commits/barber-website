@@ -128,8 +128,18 @@ function createTimes(start, end) {
 }
 
 async function adminCancelBooking(appointmentId, day, time) {
-    const ok = await showAdminConfirm("לבטל את התור הזה?");
-    if (!ok) return;
+    showPopup("לבטל את התור הזה?", async function() {
+
+    const slotId = day.replaceAll(" ", "_")
+        .replaceAll("/", "-") + "_" + time.replace(":", "-");
+
+    await deleteDoc(doc(db, "appointments", appointmentId));
+    await deleteDoc(doc(db, "bookedSlots", slotId));
+
+    showSuccessPopup("התור בוטל בהצלחה");
+
+    loadAppointments();
+});
 
     const slotId = day.replaceAll(" ", "_").replaceAll("/", "-") + "_" + time.replace(":", "-");
 
@@ -178,6 +188,47 @@ function showAdminToast(text) {
 
     setTimeout(function() {
         toast.remove();
+    }, 1800);
+}
+function showPopup(message, onConfirm) {
+
+    const popup = document.getElementById("customPopup");
+    const text = document.getElementById("popupText");
+    const confirmBtn = document.getElementById("confirmBtn");
+    const cancelBtn = document.getElementById("cancelBtn");
+
+    text.textContent = message;
+
+    popup.style.display = "flex";
+
+    confirmBtn.onclick = function() {
+        popup.style.display = "none";
+        onConfirm();
+    };
+
+    cancelBtn.onclick = function() {
+        popup.style.display = "none";
+    };
+}
+
+function showSuccessPopup(message) {
+
+    const popup = document.getElementById("customPopup");
+    const text = document.getElementById("popupText");
+
+    popup.classList.add("success-popup");
+
+    text.textContent = message;
+
+    document.querySelector(".popup-buttons").style.display = "none";
+
+    popup.style.display = "flex";
+
+    setTimeout(function() {
+        popup.style.display = "none";
+        popup.classList.remove("success-popup");
+
+        document.querySelector(".popup-buttons").style.display = "flex";
     }, 1800);
 }
 loadAppointments();

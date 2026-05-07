@@ -1,6 +1,5 @@
 import { db, collection, doc, deleteDoc } from "./firebase.js";
-import { getDocs, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";const scheduleBox = document.getElementById("adminSchedule");
-
+import { getDocs, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 const workingHours = {
     "ראשון": ["14:00", "23:00"],
     "שני": ["14:00", "23:00"],
@@ -13,7 +12,25 @@ const workingHours = {
 
 const dayNames = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];
 let allAppointments = [];
+async function getCurrentPackageText(appointment) {
+    if (!appointment.usedPackage && !appointment.package) {
+        return "";
+    }
 
+    const typeKey =
+        appointment.service.includes("ילדים") ? "_kids" : "_adults";
+
+    const packageRef = doc(db, "packages", appointment.phone + typeKey);
+    const packageSnap = await getDoc(packageRef);
+
+    if (!packageSnap.exists()) {
+        return "";
+    }
+
+    const packageData = packageSnap.data();
+
+    return `<p>חבילה: ${packageData.type} | נותרו: ${packageData.remainingCuts}</p>`;
+}
 async function loadAppointments() {
     const snapshot = await getDocs(collection(db, "appointments"));
     allAppointments = [];
@@ -61,11 +78,11 @@ function showFullWeek() {
         } else {
             const times = createTimes(workingHours[dayName][0], workingHours[dayName][1]);
 
-            times.forEach(function(time) {
+            for (const time of times) {
                 const appointment = allAppointments.find(function(app) {
                     return app.day === fullDay && app.time === time;
                 });
-
+const packageText = await getCurrentPackageText(appointment);
                 const slot = document.createElement("div");
                 slot.className = "admin-slot";
 
@@ -77,8 +94,7 @@ function showFullWeek() {
                         <p>${appointment.phone}</p>
                         <p>${appointment.service}</p>
                         <p>${appointment.payment === "cash" ? "מזומן במספרה" : "אשראי"}</p>
-                           ${appointment.package ? `<p>חבילה: ${appointment.package.type} | נותרו: ${appointment.package.remainingCuts-1}</p>` : ""}
-                           ${appointment.usedPackage ? `<p>שולם מחבילה | נותרו: ${appointment.usedPackage.remainingAfter}</p>` : ""}
+                           ${packageText}
                         <button onclick="adminCancelBooking('${appointment.id}', '${appointment.day}', '${appointment.time}')">
                             ביטול תור
                         </button>
@@ -97,7 +113,7 @@ function showFullWeek() {
                 }
 
                 dayBox.appendChild(slot);
-            });
+            };
         }
 
         scheduleBox.appendChild(dayBox);

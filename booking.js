@@ -231,7 +231,7 @@ if (serviceSelect.value.includes("ילדים") && !serviceSelect.value.includes(
             phone: customerPhone.value,
             type: "מבוגרים",
             totalCuts: 5,
-            remainingCuts: 5,
+            remainingCuts: 4,
             createdAt: new Date()
         };
 
@@ -244,7 +244,7 @@ if (serviceSelect.value.includes("ילדים") && !serviceSelect.value.includes(
             phone: customerPhone.value,
             type: "ילדים",
             totalCuts: 5,
-            remainingCuts: 5,
+            remainingCuts: 4,
             createdAt: new Date()
         };
 

@@ -174,7 +174,7 @@ async function confirmBooking() {
     }
      let usedPackage = null;
 
-if (serviceSelect.value === "תספורת מבוגרים") {
+if (serviceSelect.value.includes("מבוגרים") && !serviceSelect.value.includes("5")) {
     const packageRef = doc(db, "packages", customerPhone.value + "_adults");
     const packageSnap = await getDoc(packageRef);
 
@@ -196,7 +196,7 @@ if (serviceSelect.value === "תספורת מבוגרים") {
     }
 }
 
-if (serviceSelect.value === "תספורת ילדים") {
+if (serviceSelect.value.includes("ילדים") && !serviceSelect.value.includes("5")) {
     const packageRef = doc(db, "packages", customerPhone.value + "_kids");
     const packageSnap = await getDoc(packageRef);
 

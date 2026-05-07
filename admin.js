@@ -1,6 +1,5 @@
 import { db, collection, doc, deleteDoc } from "./firebase.js";
-import { getDocs } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
-
+import { getDocs, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 const scheduleBox = document.getElementById("adminSchedule");
 
 const workingHours = {
@@ -129,18 +128,30 @@ function createTimes(start, end) {
 }
 
 async function adminCancelBooking(appointmentId, day, time) {
-    showPopup("לבטל את התור הזה?", async function() {
+    const ok = await showAdminConfirm("לבטל את התור הזה?");
+    if (!ok) return;
 
-    const slotId = day.replaceAll(" ", "_")
-        .replaceAll("/", "-") + "_" + time.replace(":", "-");
+    const appointmentRef = doc(db, "appointments", appointmentId);
+    const appointmentSnap = await getDoc(appointmentRef);
 
-    await deleteDoc(doc(db, "appointments", appointmentId));
-    await deleteDoc(doc(db, "bookedSlots", slotId));
+    if (appointmentSnap.exists()) {
+        const appointment = appointmentSnap.data();
 
-    showSuccessPopup("התור בוטל בהצלחה");
+        if (appointment.usedPackage) {
+            const typeKey = appointment.usedPackage.type === "מבוגרים" ? "_adults" : "_kids";
+            const packageRef = doc(db, "packages", appointment.phone + typeKey);
+            const packageSnap = await getDoc(packageRef);
 
-    loadAppointments();
-});
+            if (packageSnap.exists()) {
+                const packageData = packageSnap.data();
+
+                await setDoc(packageRef, {
+                    ...packageData,
+                    remainingCuts: packageData.remainingCuts + 1
+                });
+            }
+        }
+    }
 
     const slotId = day.replaceAll(" ", "_").replaceAll("/", "-") + "_" + time.replace(":", "-");
 
@@ -150,6 +161,8 @@ async function adminCancelBooking(appointmentId, day, time) {
     showAdminToast("התור בוטל בהצלחה");
     loadAppointments();
 }
+
+
 window.adminCancelBooking = adminCancelBooking;
 function showAdminConfirm(message) {
     return new Promise((resolve) => {

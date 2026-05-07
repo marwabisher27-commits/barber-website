@@ -128,7 +128,7 @@ function createTimes(start, end) {
 }
 
 async function adminCancelBooking(appointmentId, day, time) {
-    const ok = confirm("לבטל את התור הזה?");
+    const ok = await showAdminConfirm("לבטל את התור הזה?");
     if (!ok) return;
 
     const slotId = day.replaceAll(" ", "_").replaceAll("/", "-") + "_" + time.replace(":", "-");
@@ -136,10 +136,49 @@ async function adminCancelBooking(appointmentId, day, time) {
     await deleteDoc(doc(db, "appointments", appointmentId));
     await deleteDoc(doc(db, "bookedSlots", slotId));
 
-    alert("התור בוטל בהצלחה");
+    showAdminToast("התור בוטל בהצלחה");
     loadAppointments();
 }
-
 window.adminCancelBooking = adminCancelBooking;
+function showAdminConfirm(message) {
+    return new Promise((resolve) => {
+        const popup = document.createElement("div");
+        popup.className = "admin-popup";
 
+        popup.innerHTML = `
+            <div class="admin-popup-card">
+                <h2>אישור פעולה</h2>
+                <p>${message}</p>
+                <div class="admin-popup-actions">
+                    <button class="confirm-yes">כן, לבטל</button>
+                    <button class="confirm-no">חזרה</button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(popup);
+
+        popup.querySelector(".confirm-yes").onclick = function() {
+            popup.remove();
+            resolve(true);
+        };
+
+        popup.querySelector(".confirm-no").onclick = function() {
+            popup.remove();
+            resolve(false);
+        };
+    });
+}
+
+function showAdminToast(text) {
+    const toast = document.createElement("div");
+    toast.className = "admin-toast";
+    toast.textContent = text;
+    document.body.appendChild(toast);
+
+    setTimeout(function() {
+        toast.remove();
+    }, 1800);
+}
 loadAppointments();
+window.loadAppointments = loadAppointments;

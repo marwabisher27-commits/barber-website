@@ -1379,3 +1379,89 @@ body {
     grid-template-columns: repeat(4, 1fr);
     gap: 18px;
 }
+.admin-schedule {
+    max-width: 1200px;
+    margin: 40px auto;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+}
+
+.admin-slot {
+    background: #f8efe3;
+    border: 2px solid #8a5a2b;
+    border-radius: 18px;
+    padding: 20px;
+    min-height: 170px;
+    text-align: center;
+    transition: 0.3s;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+}
+
+.admin-slot strong {
+    display: block;
+    font-size: 34px;
+    margin-bottom: 15px;
+    color: #2b1d14;
+}
+
+.admin-slot p {
+    margin: 8px 0;
+    font-size: 20px;
+    color: #2b1d14;
+}
+
+.admin-slot.busy {
+    background: linear-gradient(135deg, #2b1d14, #4a2b1a);
+    border: none;
+    transform: scale(1.03);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+}
+
+.admin-slot.busy strong,
+.admin-slot.busy p {
+    color: white;
+}
+
+.admin-slot.busy strong {
+    font-size: 38px;
+}
+
+.admin-slot:hover {
+    transform: translateY(-4px);
+}
+.admin-closed-day {
+    max-width: 700px;
+    margin: 40px auto;
+    background: #2b1d14;
+    color: #f3d6a3;
+    border-radius: 22px;
+    padding: 35px;
+    font-size: 28px;
+    font-weight: bold;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.25);
+}
+.admin-slot.busy button,
+.admin-whatsapp {
+    display: block;
+    width: 100%;
+    margin-top: 10px;
+    padding: 10px;
+    border-radius: 10px;
+    border: none;
+    text-decoration: none;
+    font-size: 17px;
+    font-weight: bold;
+    box-sizing: border-box;
+}
+
+.admin-slot.busy button {
+    background: #8a5a2b;
+    color: white;
+    cursor: pointer;
+}
+
+.admin-whatsapp {
+    background: #25D366;
+    color: white;
+}

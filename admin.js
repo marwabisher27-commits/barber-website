@@ -1,4 +1,4 @@
-import { db, collection } from "./firebase.js";
+import { db, collection, doc, deleteDoc } from "./firebase.js";
 import { getDocs } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 
 const daySelect = document.getElementById("adminDaySelect");
@@ -63,7 +63,10 @@ async function loadAppointments() {
     const snapshot = await getDocs(collection(db, "appointments"));
 
     snapshot.forEach(function(doc) {
-        allAppointments.push(doc.data());
+        allAppointments.push({
+    id: doc.id,
+    ...doc.data()
+});
     });
 
     buildDayOptions();
@@ -80,7 +83,11 @@ function showSchedule(selectedDay) {
     const hours = workingHours[dayName];
 
     if (!hours) {
-        scheduleBox.innerHTML = "<p>המספרה סגורה ביום זה</p>";
+        scheduleBox.innerHTML = `
+    <div class="admin-closed-day">
+        🔒 המספרה סגורה ביום זה
+    </div>
+`;
         return;
     }
 
@@ -97,12 +104,22 @@ function showSchedule(selectedDay) {
         if (appointment) {
             slot.classList.add("busy");
             slot.innerHTML = `
-                <strong>${time}</strong>
-                <p>${appointment.name}</p>
-                <p>${appointment.phone}</p>
-                <p>${appointment.service}</p>
-                <p>${appointment.payment === "cash" ? "מזומן במספרה" : "אשראי"}</p>
-            `;
+    <strong>${time}</strong>
+    <p>${appointment.name}</p>
+    <p>${appointment.phone}</p>
+    <p>${appointment.service}</p>
+    <p>${appointment.payment === "cash" ? "מזומן במספרה" : "אשראי"}</p>
+
+    <button onclick="adminCancelBooking('${appointment.id}', '${appointment.day}', '${appointment.time}')">
+        ביטול תור
+    </button>
+
+    <a class="admin-whatsapp"
+       href="https://wa.me/972${appointment.phone.substring(1)}"
+       target="_blank">
+        WhatsApp
+    </a>
+`;
         } else {
             slot.innerHTML = `
                 <strong>${time}</strong>
@@ -135,5 +152,18 @@ function createTimes(start, end) {
 
     return result;
 }
+async function adminCancelBooking(appointmentId, day, time) {
+    const ok = confirm("לבטל את התור הזה?");
 
-loadAppointments();
+    if (!ok) return;
+
+    const slotId = day.replaceAll(" ", "_").replaceAll("/", "-") + "_" + time.replace(":", "-");
+
+    await deleteDoc(doc(db, "appointments", appointmentId));
+    await deleteDoc(doc(db, "bookedSlots", slotId));
+
+    alert("התור בוטל בהצלחה");
+    loadAppointments();
+}
+
+window.adminCancelBooking = adminCancelBooking;

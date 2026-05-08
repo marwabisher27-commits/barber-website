@@ -1,4 +1,4 @@
-import { db, collection, addDoc, doc, getDoc, setDoc } from "./firebase.js";
+import { db, collection, doc, deleteDoc } from "./firebase.js";
 import { getDocs, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 
 const scheduleBox = document.getElementById("adminSchedule");
@@ -154,7 +154,7 @@ async function showFullWeek() {
                     slot.innerHTML = `
                         <strong>${time}</strong>
                         <p>פנוי</p>
-<button onclick="blockSlot('${fullDay}', '${time}')">סגור שעה</button>
+                        <button onclick="blockSlot('${fullDay}', '${time}')">סגור שעה</button>
                     `;
                 }
 

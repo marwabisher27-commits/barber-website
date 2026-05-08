@@ -268,18 +268,18 @@ function showSuccessPopup(message) {
 window.adminCancelBooking = adminCancelBooking;
 window.loadAppointments = loadAppointments;
 async function blockSlot(day, time) {
-    const reason = prompt("סיבת סגירה? למשל: הפסקה");
+    const ok = await showAdminConfirm("לסגור את השעה הזאת?");
 
-    if (!reason) {
-        return;
-    }
+    if (!ok) return;
 
-    const slotId = day.replaceAll(" ", "_").replaceAll("/", "-") + "_" + time.replace(":", "-");
+    const slotId =
+        day.replaceAll(" ", "_").replaceAll("/", "-") +
+        "_" +
+        time.replace(":", "-");
 
     await setDoc(doc(db, "blockedSlots", slotId), {
         day: day,
         time: time,
-        reason: reason,
         createdAt: new Date()
     });
 

@@ -1,5 +1,6 @@
 import { db, collection, doc, deleteDoc } from "./firebase.js";
 import { getDocs, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+const scheduleBox = document.getElementById("adminSchedule");
 const workingHours = {
     "ראשון": ["14:00", "23:00"],
     "שני": ["14:00", "23:00"],
@@ -42,11 +43,11 @@ async function loadAppointments() {
         });
     });
 
-    showFullWeek();
+    await showFullWeek();
 }
 
 async function showFullWeek() {
-    scheduleBox.innerHTML = "";
+        scheduleBox.innerHTML = "";
 
     const today = new Date();
     const sunday = new Date(today);
@@ -82,8 +83,7 @@ async function showFullWeek() {
                 const appointment = allAppointments.find(function(app) {
                     return app.day === fullDay && app.time === time;
                 });
-const packageText = await getCurrentPackageText(appointment);
-                const slot = document.createElement("div");
+const packageText = appointment ? await getCurrentPackageText(appointment) : "";                const slot = document.createElement("div");
                 slot.className = "admin-slot";
 
                 if (appointment) {

@@ -1,6 +1,8 @@
 import { db, collection, doc, deleteDoc } from "./firebase.js";
 import { getDocs, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+
 const scheduleBox = document.getElementById("adminSchedule");
+
 const workingHours = {
     "ראשון": ["14:00", "23:00"],
     "שני": ["14:00", "23:00"],
@@ -12,15 +14,15 @@ const workingHours = {
 };
 
 const dayNames = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];
+
 let allAppointments = [];
+
 async function getCurrentPackageText(appointment) {
-    if (!appointment.usedPackage && !appointment.package) {
+    if (!appointment || (!appointment.usedPackage && !appointment.package)) {
         return "";
     }
 
-    const typeKey =
-        appointment.service.includes("ילדים") ? "_kids" : "_adults";
-
+    const typeKey = appointment.service.includes("ילדים") ? "_kids" : "_adults";
     const packageRef = doc(db, "packages", appointment.phone + typeKey);
     const packageSnap = await getDoc(packageRef);
 
@@ -29,9 +31,9 @@ async function getCurrentPackageText(appointment) {
     }
 
     const packageData = packageSnap.data();
-
     return `<p>חבילה: ${packageData.type} | נותרו: ${packageData.remainingCuts}</p>`;
 }
+
 async function loadAppointments() {
     const snapshot = await getDocs(collection(db, "appointments"));
     allAppointments = [];
@@ -47,7 +49,7 @@ async function loadAppointments() {
 }
 
 async function showFullWeek() {
-        scheduleBox.innerHTML = "";
+    scheduleBox.innerHTML = "";
 
     const today = new Date();
     const sunday = new Date(today);
@@ -67,7 +69,6 @@ async function showFullWeek() {
 
         const dayBox = document.createElement("div");
         dayBox.className = "admin-day-box";
-
         dayBox.innerHTML = `<h2>${fullDay}</h2>`;
 
         if (workingHours[dayName] === null) {
@@ -83,7 +84,10 @@ async function showFullWeek() {
                 const appointment = allAppointments.find(function(app) {
                     return app.day === fullDay && app.time === time;
                 });
-const packageText = appointment ? await getCurrentPackageText(appointment) : "";                const slot = document.createElement("div");
+
+                const packageText = appointment ? await getCurrentPackageText(appointment) : "";
+
+                const slot = document.createElement("div");
                 slot.className = "admin-slot";
 
                 if (appointment) {
@@ -93,8 +97,9 @@ const packageText = appointment ? await getCurrentPackageText(appointment) : "";
                         <p>${appointment.name}</p>
                         <p>${appointment.phone}</p>
                         <p>${appointment.service}</p>
-                        <p>${appointment.payment === "cash" ? "מזומן במספרה" : "אשראי"}</p>
-                           ${packageText}
+                        <p>${appointment.payment === "cash" ? "מזומן במספרה" : appointment.payment === "package" ? "חבילה" : "אשראי"}</p>
+                        ${packageText}
+
                         <button onclick="adminCancelBooking('${appointment.id}', '${appointment.day}', '${appointment.time}')">
                             ביטול תור
                         </button>
@@ -113,7 +118,7 @@ const packageText = appointment ? await getCurrentPackageText(appointment) : "";
                 }
 
                 dayBox.appendChild(slot);
-            };
+            }
         }
 
         scheduleBox.appendChild(dayBox);
@@ -166,7 +171,7 @@ async function adminCancelBooking(appointmentId, day, time) {
 
                 await setDoc(packageRef, {
                     ...packageData,
-                    remainingCuts: Math.min(packageData.remainingCuts + 1, 5)
+                    remainingCuts: Math.min(packageData.remainingCuts + 1, 4)
                 });
             }
         }
@@ -181,8 +186,6 @@ async function adminCancelBooking(appointmentId, day, time) {
     loadAppointments();
 }
 
-
-window.adminCancelBooking = adminCancelBooking;
 function showAdminConfirm(message) {
     return new Promise((resolve) => {
         const popup = document.createElement("div");
@@ -213,56 +216,18 @@ function showAdminConfirm(message) {
     });
 }
 
-function showAdminToast(text) {
+function showSuccessPopup(message) {
     const toast = document.createElement("div");
     toast.className = "admin-toast";
-    toast.textContent = text;
+    toast.textContent = message;
     document.body.appendChild(toast);
 
     setTimeout(function() {
         toast.remove();
     }, 1800);
 }
-function showPopup(message, onConfirm) {
 
-    const popup = document.getElementById("customPopup");
-    const text = document.getElementById("popupText");
-    const confirmBtn = document.getElementById("confirmBtn");
-    const cancelBtn = document.getElementById("cancelBtn");
-
-    text.textContent = message;
-
-    popup.style.display = "flex";
-
-    confirmBtn.onclick = function() {
-        popup.style.display = "none";
-        onConfirm();
-    };
-
-    cancelBtn.onclick = function() {
-        popup.style.display = "none";
-    };
-}
-
-function showSuccessPopup(message) {
-
-    const popup = document.getElementById("customPopup");
-    const text = document.getElementById("popupText");
-
-    popup.classList.add("success-popup");
-
-    text.textContent = message;
-
-    document.querySelector(".popup-buttons").style.display = "none";
-
-    popup.style.display = "flex";
-
-    setTimeout(function() {
-        popup.style.display = "none";
-        popup.classList.remove("success-popup");
-
-        document.querySelector(".popup-buttons").style.display = "flex";
-    }, 1800);
-}
-loadAppointments();
+window.adminCancelBooking = adminCancelBooking;
 window.loadAppointments = loadAppointments;
+
+loadAppointments();

@@ -1,4 +1,4 @@
-import { db, collection, doc, deleteDoc } from "./firebase.js";
+import { db, collection, addDoc, doc, getDoc, setDoc } from "./firebase.js";
 import { getDocs, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 
 const scheduleBox = document.getElementById("adminSchedule");
@@ -154,6 +154,7 @@ async function showFullWeek() {
                     slot.innerHTML = `
                         <strong>${time}</strong>
                         <p>פנוי</p>
+<button onclick="blockSlot('${fullDay}', '${time}')">סגור שעה</button>
                     `;
                 }
 
@@ -262,5 +263,25 @@ function showSuccessPopup(message) {
 
 window.adminCancelBooking = adminCancelBooking;
 window.loadAppointments = loadAppointments;
+async function blockSlot(day, time) {
+    const reason = prompt("סיבת סגירה? למשל: הפסקה");
 
+    if (!reason) {
+        return;
+    }
+
+    const slotId = day.replaceAll(" ", "_").replaceAll("/", "-") + "_" + time.replace(":", "-");
+
+    await setDoc(doc(db, "blockedSlots", slotId), {
+        day: day,
+        time: time,
+        reason: reason,
+        createdAt: new Date()
+    });
+
+    showSuccessPopup("השעה נסגרה בהצלחה");
+    await loadAppointments();
+}
+
+window.blockSlot = blockSlot;
 loadAppointments();

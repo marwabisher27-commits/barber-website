@@ -113,7 +113,14 @@ async function showTimes(dayName, fullDay) {
             button.textContent = time + " תפוס";
             button.disabled = true;
         }
+        const blockedRef = doc(db, "blockedSlots", slotId);
+        const blockedSnap = await getDoc(blockedRef);
 
+        if (blockedSnap.exists()) {
+           button.classList.add("booked");
+           button.textContent = time + " לא זמין";
+           button.disabled = true;
+         }
         button.addEventListener("click", function() {
             selectedTime = time;
 

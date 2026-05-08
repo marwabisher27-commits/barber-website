@@ -45,7 +45,7 @@ async function loadAppointments() {
     showFullWeek();
 }
 
-function showFullWeek() {
+async function showFullWeek() {
     scheduleBox.innerHTML = "";
 
     const today = new Date();

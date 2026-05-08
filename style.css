@@ -1346,6 +1346,7 @@ body {
     padding: 60px;
     background: linear-gradient(135deg, #efe1cf, #d6b895);
     text-align: center;
+    padding-bottom: 40px;
 }
 
 .admin-page h1 {
@@ -1616,12 +1617,14 @@ body {
     opacity: 0.55;
     cursor: not-allowed;
 }
-.admin-footer {
-    background: #2b1d14;
-    color: #f3d6a3;
+.admin-footer{
+    width: 100%;
+    background: #111;
+    color: #f5e6d3;
     text-align: center;
-    padding: 22px;
-    font-size: 20px;
+    padding: 18px;
+    margin-top: 40px;
+    border-radius: 12px 12px 0 0;
+    font-size: 18px;
     font-weight: bold;
-    margin-top: 50px;
 }

@@ -1,12 +1,74 @@
 import { db, collection, doc, deleteDoc } from "./firebase.js";
 import {
     getDocs,
+    getDoc,
+    setDoc,
     query,
     where
 } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 
 const phoneInput = document.getElementById("managePhone");
 const resultBox = document.getElementById("bookingResult");
+
+async function getCurrentPackageText(booking) {
+    if (!booking || (!booking.usedPackage && !booking.package)) {
+        return "";
+    }
+
+    const typeKey = booking.service.includes("ילדים") ? "_kids" : "_adults";
+    const packageRef = doc(db, "packages", booking.phone + typeKey);
+    const packageSnap = await getDoc(packageRef);
+
+    if (!packageSnap.exists()) {
+        return "";
+    }
+
+    const packageData = packageSnap.data();
+
+    return `<p>חבילה: ${packageData.type} | נותרו: ${packageData.remainingCuts}</p>`;
+}
+
+async function recalculatePackage(phone, type) {
+    const snapshot = await getDocs(collection(db, "appointments"));
+    let used = 0;
+
+    snapshot.forEach(function(document) {
+        const app = document.data();
+
+        if (app.phone === phone) {
+            if (type === "מבוגרים" && app.service.includes("מבוגרים")) used++;
+            if (type === "ילדים" && app.service.includes("ילדים")) used++;
+        }
+    });
+
+    const packageId = type === "מבוגרים" ? phone + "_adults" : phone + "_kids";
+    const packageRef = doc(db, "packages", packageId);
+    const packageSnap = await getDoc(packageRef);
+
+    if (packageSnap.exists()) {
+        const packageData = packageSnap.data();
+
+        await setDoc(packageRef, {
+            ...packageData,
+            remainingCuts: Math.max(5 - used, 0)
+        });
+    }
+}
+
+function isPastAppointment(day, time) {
+    const datePart = day.split(" ")[1];
+    if (!datePart) return false;
+
+    const [dayNum, monthNum] = datePart.split("/").map(Number);
+    const [hour, minute] = time.split(":").map(Number);
+
+    const appointmentDate = new Date();
+    appointmentDate.setMonth(monthNum - 1);
+    appointmentDate.setDate(dayNum);
+    appointmentDate.setHours(hour, minute, 0, 0);
+
+    return new Date() > appointmentDate;
+}
 
 async function findBooking() {
     resultBox.innerHTML = "מחפש...";
@@ -27,13 +89,20 @@ async function findBooking() {
 
     resultBox.innerHTML = "";
 
-    querySnapshot.forEach(function(document) {
+    for (const document of querySnapshot.docs) {
         const booking = document.data();
         const appointmentId = document.id;
+        const packageText = await getCurrentPackageText(booking);
 
         let buttons = "";
 
-        if (booking.payment === "cash" || booking.payment === "package" || booking.usedPackage || booking.package) {
+        if (isPastAppointment(booking.day, booking.time)) {
+            buttons = `
+                <p class="no-change">
+                    התור עבר ולא ניתן לבטל או לשנות
+                </p>
+            `;
+        } else if (booking.payment === "cash" || booking.payment === "package" || booking.usedPackage || booking.package) {
             buttons = `
                 <button onclick="cancelBooking('${appointmentId}', '${booking.day}', '${booking.time}')">
                     ביטול תור
@@ -58,23 +127,29 @@ async function findBooking() {
                 <p>יום: ${booking.day}</p>
                 <p>שעה: ${booking.time}</p>
                 <p>תשלום: ${booking.payment === "cash" ? "מזומן במספרה" : booking.payment === "package" ? "חבילה" : "אשראי"}</p>
-
-${booking.package ? `<p>חבילה: ${booking.package.type} | נותרו: ${booking.package.remainingCuts}</p>` : ""}
-${booking.usedPackage ? `<p>שולם מחבילה | נותרו: ${booking.usedPackage.remainingAfter}</p>` : ""}
-
-${buttons}
+                ${packageText}
+                ${buttons}
             </div>
         `;
-    });
+    }
 }
 
 async function cancelBooking(appointmentId, day, time) {
     const confirmCancel = await showConfirmPopup(
-    "האם אתה בטוח שברצונך לבטל את התור?"
-);
+        "האם אתה בטוח שברצונך לבטל את התור?"
+    );
 
     if (!confirmCancel) {
         return;
+    }
+
+    const appointmentRef = doc(db, "appointments", appointmentId);
+    const appointmentSnap = await getDoc(appointmentRef);
+
+    let oldBooking = null;
+
+    if (appointmentSnap.exists()) {
+        oldBooking = appointmentSnap.data();
     }
 
     const slotId = day.replaceAll(" ", "_").replaceAll("/", "-") + "_" + time.replace(":", "-");
@@ -82,31 +157,35 @@ async function cancelBooking(appointmentId, day, time) {
     await deleteDoc(doc(db, "appointments", appointmentId));
     await deleteDoc(doc(db, "bookedSlots", slotId));
 
+    if (oldBooking) {
+        if (oldBooking.service.includes("מבוגרים")) {
+            await recalculatePackage(oldBooking.phone, "מבוגרים");
+        }
+
+        if (oldBooking.service.includes("ילדים")) {
+            await recalculatePackage(oldBooking.phone, "ילדים");
+        }
+    }
+
     showToast("התור בוטל בהצלחה");
     findBooking();
 }
 
 async function changeBooking(appointmentId, day, time) {
     const confirmChange = await showConfirmPopup(
-    "כדי לשנות תור, התור הישן יבוטל. להמשיך?"
-);
+        "כדי לשנות תור, התור הישן יבוטל. להמשיך?"
+    );
 
     if (!confirmChange) {
         return;
     }
 
-    const slotId = day.replaceAll(" ", "_").replaceAll("/", "-") + "_" + time.replace(":", "-");
-    await deleteDoc(doc(db, "appointments", appointmentId));
-await deleteDoc(doc(db, "bookedSlots", slotId));
-
-showToast("התור בוטל בהצלחה");
-findBooking();
-
+    await cancelBooking(appointmentId, day, time);
     location.href = "booking.html";
 }
+
 function showConfirmPopup(message) {
     return new Promise((resolve) => {
-
         const popup = document.createElement("div");
         popup.className = "confirm-popup";
 
@@ -134,6 +213,7 @@ function showConfirmPopup(message) {
         };
     });
 }
+
 function showToast(text) {
     const message = document.createElement("div");
     message.className = "toast-message";
@@ -144,6 +224,7 @@ function showToast(text) {
         message.remove();
     }, 1800);
 }
+
 window.findBooking = findBooking;
 window.cancelBooking = cancelBooking;
 window.changeBooking = changeBooking;

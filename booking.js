@@ -71,7 +71,18 @@ serviceSelect.addEventListener("change", function() {
 });
 
 appointmentPaymentMethod.addEventListener("change", updateSummary);
+function isPastTime(fullDay, time) {
+    const datePart = fullDay.split(" ")[1];
+    const [dayNum, monthNum] = datePart.split("/").map(Number);
+    const [hour, minute] = time.split(":").map(Number);
 
+    const appointmentDate = new Date();
+    appointmentDate.setMonth(monthNum - 1);
+    appointmentDate.setDate(dayNum);
+    appointmentDate.setHours(hour, minute, 0, 0);
+
+    return new Date() > appointmentDate;
+}
 async function showTimes(dayName, fullDay) {
     timesGrid.innerHTML = "";
 
@@ -88,7 +99,11 @@ async function showTimes(dayName, fullDay) {
         const button = document.createElement("button");
         button.className = "time-card";
         button.textContent = time;
-
+        if (isPastTime(fullDay, time)) {
+          button.classList.add("past-time");
+          button.textContent = time + " עבר";
+          button.disabled = true;
+        }
         const slotId = fullDay.replaceAll(" ", "_").replace("/", "-") + "_" + time.replace(":", "-");
         const slotRef = doc(db, "bookedSlots", slotId);
         const slotSnap = await getDoc(slotRef);

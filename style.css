@@ -1594,3 +1594,10 @@ body {
         opacity: 1;
     }
 }
+.time-card.past-time {
+    background: #b85c5c;
+    color: white;
+    border-color: #7a2f2f;
+    cursor: not-allowed;
+    opacity: 0.75;
+}

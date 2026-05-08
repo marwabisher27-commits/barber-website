@@ -151,11 +151,15 @@ async function showFullWeek() {
                         </a>
                     `;
                 } else {
+                    const blockButton = isPastAppointment(fullDay, time)
+                     ? `<p class="past-admin-text">השעה עברה</p>`
+                    : `<button onclick="blockSlot('${fullDay}', '${time}')">סגור שעה</button>`;
+
                     slot.innerHTML = `
-                        <strong>${time}</strong>
-                        <p>פנוי</p>
-                        <button onclick="blockSlot('${fullDay}', '${time}')">סגור שעה</button>
-                    `;
+                      <strong>${time}</strong>
+                      <p>פנוי</p>
+                      ${blockButton}
+                   `;
                 }
 
                 dayBox.appendChild(slot);

@@ -1616,3 +1616,12 @@ body {
     opacity: 0.55;
     cursor: not-allowed;
 }
+.admin-footer {
+    background: #2b1d14;
+    color: #f3d6a3;
+    text-align: center;
+    padding: 22px;
+    font-size: 20px;
+    font-weight: bold;
+    margin-top: 50px;
+}

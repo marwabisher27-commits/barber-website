@@ -18,20 +18,58 @@ const dayNames = ["ראשון", "שני", "שלישי", "רביעי", "חמיש�
 let allAppointments = [];
 
 async function getCurrentPackageText(appointment) {
-    if (!appointment || (!appointment.usedPackage && !appointment.package)) {
-        return "";
-    }
+    if (!appointment || (!appointment.usedPackage && !appointment.package)) return "";
 
     const typeKey = appointment.service.includes("ילדים") ? "_kids" : "_adults";
     const packageRef = doc(db, "packages", appointment.phone + typeKey);
     const packageSnap = await getDoc(packageRef);
 
-    if (!packageSnap.exists()) {
-        return "";
-    }
+    if (!packageSnap.exists()) return "";
 
     const packageData = packageSnap.data();
     return `<p>חבילה: ${packageData.type} | נותרו: ${packageData.remainingCuts}</p>`;
+}
+
+function isPastAppointment(day, time) {
+    const datePart = day.split(" ")[1];
+    if (!datePart) return false;
+
+    const [dayNum, monthNum] = datePart.split("/").map(Number);
+    const [hour, minute] = time.split(":").map(Number);
+
+    const appointmentDate = new Date();
+    appointmentDate.setMonth(monthNum - 1);
+    appointmentDate.setDate(dayNum);
+    appointmentDate.setHours(hour, minute, 0, 0);
+
+    return new Date() > appointmentDate;
+}
+
+async function recalculatePackage(phone, type) {
+    const snapshot = await getDocs(collection(db, "appointments"));
+    let used = 0;
+
+    snapshot.forEach(function(document) {
+        const app = document.data();
+
+        if (app.phone === phone) {
+            if (type === "מבוגרים" && app.service.includes("מבוגרים")) used++;
+            if (type === "ילדים" && app.service.includes("ילדים")) used++;
+        }
+    });
+
+    const packageId = type === "מבוגרים" ? phone + "_adults" : phone + "_kids";
+    const packageRef = doc(db, "packages", packageId);
+    const packageSnap = await getDoc(packageRef);
+
+    if (packageSnap.exists()) {
+        const packageData = packageSnap.data();
+
+        await setDoc(packageRef, {
+            ...packageData,
+            remainingCuts: Math.max(5 - used, 0)
+        });
+    }
 }
 
 async function loadAppointments() {
@@ -92,6 +130,11 @@ async function showFullWeek() {
 
                 if (appointment) {
                     slot.classList.add("busy");
+
+                    const cancelButton = isPastAppointment(appointment.day, appointment.time)
+                        ? `<p>התור עבר ולא ניתן לבטל</p>`
+                        : `<button onclick="adminCancelBooking('${appointment.id}', '${appointment.day}', '${appointment.time}')">ביטול תור</button>`;
+
                     slot.innerHTML = `
                         <strong>${time}</strong>
                         <p>${appointment.name}</p>
@@ -99,10 +142,7 @@ async function showFullWeek() {
                         <p>${appointment.service}</p>
                         <p>${appointment.payment === "cash" ? "מזומן במספרה" : appointment.payment === "package" ? "חבילה" : "אשראי"}</p>
                         ${packageText}
-
-                        <button onclick="adminCancelBooking('${appointment.id}', '${appointment.day}', '${appointment.time}')">
-                            ביטול תור
-                        </button>
+                        ${cancelButton}
 
                         <a class="admin-whatsapp"
                            href="https://wa.me/972${appointment.phone.substring(1)}"
@@ -154,27 +194,10 @@ async function adminCancelBooking(appointmentId, day, time) {
     const appointmentRef = doc(db, "appointments", appointmentId);
     const appointmentSnap = await getDoc(appointmentRef);
 
+    let oldAppointment = null;
+
     if (appointmentSnap.exists()) {
-        const appointment = appointmentSnap.data();
-
-        if (appointment.usedPackage) {
-            const packageId =
-                appointment.usedPackage.type === "מבוגרים"
-                    ? appointment.phone + "_adults"
-                    : appointment.phone + "_kids";
-
-            const packageRef = doc(db, "packages", packageId);
-            const packageSnap = await getDoc(packageRef);
-
-            if (packageSnap.exists()) {
-                const packageData = packageSnap.data();
-
-                await setDoc(packageRef, {
-                    ...packageData,
-                    remainingCuts: Math.min(packageData.remainingCuts + 1, 4)
-                });
-            }
-        }
+        oldAppointment = appointmentSnap.data();
     }
 
     const slotId = day.replaceAll(" ", "_").replaceAll("/", "-") + "_" + time.replace(":", "-");
@@ -182,8 +205,18 @@ async function adminCancelBooking(appointmentId, day, time) {
     await deleteDoc(doc(db, "appointments", appointmentId));
     await deleteDoc(doc(db, "bookedSlots", slotId));
 
+    if (oldAppointment) {
+        if (oldAppointment.service.includes("מבוגרים")) {
+            await recalculatePackage(oldAppointment.phone, "מבוגרים");
+        }
+
+        if (oldAppointment.service.includes("ילדים")) {
+            await recalculatePackage(oldAppointment.phone, "ילדים");
+        }
+    }
+
     showSuccessPopup("התור בוטל בהצלחה");
-    loadAppointments();
+    await loadAppointments();
 }
 
 function showAdminConfirm(message) {

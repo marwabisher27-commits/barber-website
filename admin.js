@@ -1,6 +1,5 @@
 import { db, collection, doc, deleteDoc } from "./firebase.js";
-import { getDocs, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
-
+import { getDocs, getDoc, setDoc, addDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 const scheduleBox = document.getElementById("adminSchedule");
 
 const workingHours = {
@@ -131,10 +130,21 @@ async function showFullWeek() {
                 if (appointment) {
                     slot.classList.add("busy");
 
-                    const cancelButton = isPastAppointment(appointment.day, appointment.time)
-                        ? `<p>התור עבר ולא ניתן לבטל</p>`
-                        : `<button onclick="adminCancelBooking('${appointment.id}', '${appointment.day}', '${appointment.time}')">ביטול תור</button>`;
+                    const actionButtons = isPastAppointment(appointment.day, appointment.time)
+    ? `<p>התור עבר ולא ניתן לבטל</p>`
+    : `
+        <button onclick="adminCancelBooking('${appointment.id}', '${appointment.day}', '${appointment.time}')">
+            ביטול תור
+        </button>
 
+        <button onclick="markArrivedPaid('${appointment.id}', '${appointment.day}', '${appointment.time}')">
+            הגיע ושילם
+        </button>
+
+        <button onclick="markNoShow('${appointment.id}', '${appointment.day}', '${appointment.time}')">
+            לא הגיע
+        </button>
+    `;
                     slot.innerHTML = `
                         <strong>${time}</strong>
                         <p>${appointment.name}</p>
@@ -142,8 +152,7 @@ async function showFullWeek() {
                         <p>${appointment.service}</p>
                         <p>${appointment.payment === "cash" ? "מזומן במספרה" : appointment.payment === "package" ? "חבילה" : "אשראי"}</p>
                         ${packageText}
-                        ${cancelButton}
-
+                        ${actionButtons}
                         <a class="admin-whatsapp"
                            href="https://wa.me/972${appointment.phone.substring(1)}"
                            target="_blank">
@@ -286,6 +295,125 @@ async function blockSlot(day, time) {
     showSuccessPopup("השעה נסגרה בהצלחה");
     await loadAppointments();
 }
+async function markArrivedPaid(appointmentId, day, time) {
+    const appointmentRef = doc(db, "appointments", appointmentId);
+    const appointmentSnap = await getDoc(appointmentRef);
 
+    if (!appointmentSnap.exists()) return;
+
+    const appointment = appointmentSnap.data();
+
+    let amount = 0;
+
+    if (appointment.payment !== "package" && !appointment.usedPackage && !appointment.package) {
+        amount = Number(prompt("כמה שילם הלקוח?"));
+        if (!amount) return;
+    }
+
+    await addDoc(collection(db, "income"), {
+        type: "appointment",
+        status: "arrived_paid",
+        name: appointment.name,
+        phone: appointment.phone,
+        service: appointment.service,
+        payment: appointment.payment,
+        amount: amount,
+        day: appointment.day,
+        time: appointment.time,
+        createdAt: new Date()
+    });
+
+    const slotId = day.replaceAll(" ", "_").replaceAll("/", "-") + "_" + time.replace(":", "-");
+
+    await deleteDoc(doc(db, "appointments", appointmentId));
+    await deleteDoc(doc(db, "bookedSlots", slotId));
+
+    showSuccessPopup("התור נשמר כהגיע ושילם");
+    await loadAppointments();
+}
+
+async function markNoShow(appointmentId, day, time) {
+    const appointmentRef = doc(db, "appointments", appointmentId);
+    const appointmentSnap = await getDoc(appointmentRef);
+
+    if (!appointmentSnap.exists()) return;
+
+    const appointment = appointmentSnap.data();
+
+    await addDoc(collection(db, "income"), {
+        type: "appointment",
+        status: "no_show",
+        name: appointment.name,
+        phone: appointment.phone,
+        service: appointment.service,
+        amount: 0,
+        day: appointment.day,
+        time: appointment.time,
+        createdAt: new Date()
+    });
+
+    const slotId = day.replaceAll(" ", "_").replaceAll("/", "-") + "_" + time.replace(":", "-");
+
+    await deleteDoc(doc(db, "appointments", appointmentId));
+    await deleteDoc(doc(db, "bookedSlots", slotId));
+
+    showSuccessPopup("התור סומן כלקוח שלא הגיע");
+    await loadAppointments();
+}
+
+async function addManualIncome() {
+    const name = prompt("שם לקוח");
+    if (!name) return;
+
+    const description = prompt("מה בוצע? למשל: תספורת / מוצר");
+    if (!description) return;
+
+    const amount = Number(prompt("סכום ששולם"));
+    if (!amount) return;
+
+    await addDoc(collection(db, "income"), {
+        type: "manual",
+        status: "paid",
+        name: name,
+        description: description,
+        amount: amount,
+        createdAt: new Date()
+    });
+
+    showSuccessPopup("הפעולה נשמרה להכנסות");
+}
 window.blockSlot = blockSlot;
+window.markArrivedPaid = markArrivedPaid;
+window.markNoShow = markNoShow;
+window.addManualIncome = addManualIncome;
+let lastAppointmentsCount = 0;
+let firstCheck = true;
+
+function playBeep() {
+    const audio = new Audio("https://actions.google.com/sounds/v1/alarms/beep_short.ogg");
+    audio.play();
+}
+
+async function checkNewActivity() {
+    const apps = await getDocs(collection(db, "appointments"));
+    const orders = await getDocs(collection(db, "orders"));
+
+    const total = apps.size + orders.size;
+
+    if (firstCheck) {
+        lastAppointmentsCount = total;
+        firstCheck = false;
+        return;
+    }
+
+    if (total > lastAppointmentsCount) {
+        showSuccessPopup("התקבלה הזמנה חדשה");
+        playBeep();
+    }
+
+    lastAppointmentsCount = total;
+}
+
+setInterval(checkNewActivity, 15000);
+checkNewActivity();
 loadAppointments();

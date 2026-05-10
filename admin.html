@@ -11,9 +11,15 @@
 <section class="admin-page">
     <h1>ניהול תורים</h1>
 <h2 class="admin-shop-name">Ali Kanaan Barber Shop ✂</h2>
-<button class="admin-refresh-btn" onclick="addManualIncome()">
-    רישום לקוח / מכירה ידנית
-</button>
+<section class="manual-income-box">
+    <h2>רישום ידני</h2>
+
+    <input id="manualName" type="text" placeholder="שם לקוח">
+    <input id="manualDescription" type="text" placeholder="מה בוצע? תספורת / מוצר">
+    <input id="manualAmount" type="number" placeholder="סכום">
+
+    <button onclick="addManualIncome()">שמירה</button>
+</section>
     <div id="adminSchedule" class="admin-schedule"></div>
     <footer class="admin-footer">
     © 2026 Ali Kanaan Barber Shop | כל הזכויות שמורות

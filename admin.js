@@ -13,7 +13,17 @@ const workingHours = {
 };
 
 const dayNames = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];
+const servicePrices = {
+    "תספורת מבוגרים": 20,
+    "תספורת ילדים": 15,
+    "סידור זקן": 20,
+    "5 תספורות מבוגרים": 90,
+    "5 תספורות ילדים": 70
+};
 
+function getServicePrice(service) {
+    return servicePrices[service] || 0;
+}
 let allAppointments = [];
 
 async function getCurrentPackageText(appointment) {
@@ -306,8 +316,7 @@ async function markArrivedPaid(appointmentId, day, time) {
     let amount = 0;
 
     if (appointment.payment !== "package" && !appointment.usedPackage && !appointment.package) {
-        amount = Number(prompt("כמה שילם הלקוח?"));
-        if (!amount) return;
+        amount = getServicePrice(appointment.service);
     }
 
     await addDoc(collection(db, "income"), {
@@ -362,14 +371,14 @@ async function markNoShow(appointmentId, day, time) {
 }
 
 async function addManualIncome() {
-    const name = prompt("שם לקוח");
-    if (!name) return;
+    const name = document.getElementById("manualName").value.trim();
+    const description = document.getElementById("manualDescription").value.trim();
+    const amount = Number(document.getElementById("manualAmount").value);
 
-    const description = prompt("מה בוצע? למשל: תספורת / מוצר");
-    if (!description) return;
-
-    const amount = Number(prompt("סכום ששולם"));
-    if (!amount) return;
+    if (!name || !description || !amount) {
+        showSuccessPopup("נא למלא שם, פעולה וסכום");
+        return;
+    }
 
     await addDoc(collection(db, "income"), {
         type: "manual",
@@ -381,6 +390,10 @@ async function addManualIncome() {
     });
 
     showSuccessPopup("הפעולה נשמרה להכנסות");
+
+    document.getElementById("manualName").value = "";
+    document.getElementById("manualDescription").value = "";
+    document.getElementById("manualAmount").value = "";
 }
 window.blockSlot = blockSlot;
 window.markArrivedPaid = markArrivedPaid;

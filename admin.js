@@ -22,7 +22,15 @@ const servicePrices = {
 };
 
 function getServicePrice(service) {
-    return servicePrices[service] || 0;
+    service = service.trim();
+
+    if (service.includes("5") && service.includes("מבוגרים")) return 320;
+    if (service.includes("5") && service.includes("ילדים")) return 120;
+    if (service.includes("מבוגרים")) return 70;
+    if (service.includes("ילדים")) return 30;
+    if (service.includes("זקן")) return 20;
+
+    return 0;
 }
 let allAppointments = [];
 
@@ -330,7 +338,11 @@ async function markArrivedPaid(appointmentId, day, time) {
     if (!appointmentSnap.exists()) return;
 
     const appointment = appointmentSnap.data();
-let amount = getServicePrice(appointment.service);
+let amount = 0;
+
+if (!appointment.usedPackage) {
+    amount = getServicePrice(appointment.service);
+}
 
     await addDoc(collection(db, "income"), {
         type: "appointment",

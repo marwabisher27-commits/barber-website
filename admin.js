@@ -14,11 +14,11 @@ const workingHours = {
 
 const dayNames = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];
 const servicePrices = {
-    "תספורת מבוגרים": 20,
-    "תספורת ילדים": 15,
+    "תספורת מבוגרים": 70,
+    "תספורת ילדים": 30,
     "סידור זקן": 20,
-    "5 תספורות מבוגרים": 90,
-    "5 תספורות ילדים": 70
+    "5 תספורות מבוגרים": 320,
+    "5 תספורות ילדים": 120
 };
 
 function getServicePrice(service) {
@@ -365,7 +365,13 @@ async function markNoShow(appointmentId, day, time) {
 
     await deleteDoc(doc(db, "appointments", appointmentId));
     await deleteDoc(doc(db, "bookedSlots", slotId));
+    if (appointment.service.includes("מבוגרים")) {
+    await recalculatePackage(appointment.phone, "מבוגרים");
+}
 
+if (appointment.service.includes("ילדים")) {
+    await recalculatePackage(appointment.phone, "ילדים");
+}
     showSuccessPopup("התור סומן כלקוח שלא הגיע");
     await loadAppointments();
 }

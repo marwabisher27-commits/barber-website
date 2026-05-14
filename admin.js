@@ -343,7 +343,10 @@ let amount = 0;
 if (!appointment.usedPackage) {
     amount = getServicePrice(appointment.service);
 }
-
+if (appointment.source === "admin") {
+    amount = Number(await showInputPopup("כמה שילם הלקוח?"));
+    if (!amount) return;
+}
     await addDoc(collection(db, "income"), {
         type: "appointment",
         status: "arrived_paid",
@@ -458,10 +461,10 @@ async function checkNewActivity() {
     lastAppointmentsCount = total;
 }
 async function registerWalkIn(day, time) {
-    const name = prompt("שם לקוח");
+    const name = await showInputPopup("שם לקוח");
     if (!name) return;
 
-    const service = prompt("שירות: תספורת מבוגרים / תספורת ילדים / סידור זקן");
+    const service = await showInputPopup("שירות: תספורת מבוגרים / תספורת ילדים / סידור זקן");
     if (!service) return;
 
     const slotId =
@@ -479,7 +482,7 @@ async function registerWalkIn(day, time) {
         name: name,
         phone: "",
         service: service,
-        payment: "cash",
+        payment: "manual",
         day: day,
         time: time,
         createdAt: new Date(),
@@ -488,6 +491,39 @@ async function registerWalkIn(day, time) {
 
     showSuccessPopup("הלקוח נרשם בהצלחה");
     await loadAppointments();
+}
+function showInputPopup(label) {
+    return new Promise((resolve) => {
+        const popup = document.createElement("div");
+        popup.className = "admin-popup";
+
+        popup.innerHTML = `
+            <div class="admin-popup-card">
+                <h2>${label}</h2>
+                <input class="admin-popup-input" type="text">
+                <div class="admin-popup-actions">
+                    <button class="confirm-yes">אישור</button>
+                    <button class="confirm-no">ביטול</button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(popup);
+
+        const input = popup.querySelector(".admin-popup-input");
+        input.focus();
+
+        popup.querySelector(".confirm-yes").onclick = function() {
+            const value = input.value.trim();
+            popup.remove();
+            resolve(value);
+        };
+
+        popup.querySelector(".confirm-no").onclick = function() {
+            popup.remove();
+            resolve("");
+        };
+    });
 }
 
 window.registerWalkIn = registerWalkIn;

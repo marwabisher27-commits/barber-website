@@ -55,15 +55,25 @@ function isPastAppointment(day, time) {
 }
 
 async function recalculatePackage(phone, type) {
-    const snapshot = await getDocs(collection(db, "appointments"));
     let used = 0;
 
-    snapshot.forEach(function(document) {
+    const appointmentsSnap = await getDocs(collection(db, "appointments"));
+    appointmentsSnap.forEach(function(document) {
         const app = document.data();
 
         if (app.phone === phone) {
             if (type === "מבוגרים" && app.service.includes("מבוגרים")) used++;
             if (type === "ילדים" && app.service.includes("ילדים")) used++;
+        }
+    });
+
+    const incomeSnap = await getDocs(collection(db, "income"));
+    incomeSnap.forEach(function(document) {
+        const item = document.data();
+
+        if (item.phone === phone && item.status === "arrived_paid") {
+            if (type === "מבוגרים" && item.service.includes("מבוגרים")) used++;
+            if (type === "ילדים" && item.service.includes("ילדים")) used++;
         }
     });
 
@@ -170,16 +180,24 @@ async function showFullWeek() {
                         </a>
                     `;
                 } else {
-                    const blockButton = isPastAppointment(fullDay, time)
-                     ? `<p class="past-admin-text">השעה עברה</p>`
-                    : `<button onclick="blockSlot('${fullDay}', '${time}')">סגור שעה</button>`;
+    const blockButton = isPastAppointment(fullDay, time)
+        ? `<p class="past-admin-text">השעה עברה</p>`
+        : `
+            <button onclick="registerWalkIn('${fullDay}', '${time}')">
+                רישום לקוח בשעה זו
+            </button>
 
-                    slot.innerHTML = `
-                      <strong>${time}</strong>
-                      <p>פנוי</p>
-                      ${blockButton}
-                   `;
-                }
+            <button onclick="blockSlot('${fullDay}', '${time}')">
+                סגור שעה
+            </button>
+        `;
+
+    slot.innerHTML = `
+        <strong>${time}</strong>
+        <p>פנוי</p>
+        ${blockButton}
+    `;
+}
 
                 dayBox.appendChild(slot);
             }
@@ -432,7 +450,40 @@ async function checkNewActivity() {
 
     lastAppointmentsCount = total;
 }
+async function registerWalkIn(day, time) {
+    const name = prompt("שם לקוח");
+    if (!name) return;
 
+    const service = prompt("שירות: תספורת מבוגרים / תספורת ילדים / סידור זקן");
+    if (!service) return;
+
+    const slotId =
+        day.replaceAll(" ", "_").replaceAll("/", "-") +
+        "_" +
+        time.replace(":", "-");
+
+    await setDoc(doc(db, "bookedSlots", slotId), {
+        day: day,
+        time: time,
+        createdAt: new Date()
+    });
+
+    await addDoc(collection(db, "appointments"), {
+        name: name,
+        phone: "",
+        service: service,
+        payment: "cash",
+        day: day,
+        time: time,
+        createdAt: new Date(),
+        source: "admin"
+    });
+
+    showSuccessPopup("הלקוח נרשם בהצלחה");
+    await loadAppointments();
+}
+
+window.registerWalkIn = registerWalkIn;
 setInterval(checkNewActivity, 15000);
 checkNewActivity();
 loadAppointments();

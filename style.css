@@ -1628,7 +1628,7 @@ body {
     border-radius: 0;
 }
 .admin-logo {
-    width: 20px;
+    width: 70px;
     height: auto;
     display: block;
     margin: 0 25px 10px auto;
@@ -1692,7 +1692,7 @@ body {
         padding: 14px;
     }
 .admin-logo {
-    width: 25px;
+    width: 55px;
     margin: 0 15px 10px auto;
 }
 }

@@ -29,15 +29,27 @@ async function getCurrentPackageText(booking) {
 }
 
 async function recalculatePackage(phone, type) {
-    const snapshot = await getDocs(collection(db, "appointments"));
     let used = 0;
 
-    snapshot.forEach(function(document) {
+    const appointmentsSnap = await getDocs(collection(db, "appointments"));
+
+    appointmentsSnap.forEach(function(document) {
         const app = document.data();
 
         if (app.phone === phone) {
             if (type === "מבוגרים" && app.service.includes("מבוגרים")) used++;
             if (type === "ילדים" && app.service.includes("ילדים")) used++;
+        }
+    });
+
+    const incomeSnap = await getDocs(collection(db, "income"));
+
+    incomeSnap.forEach(function(document) {
+        const item = document.data();
+
+        if (item.phone === phone && item.status === "arrived_paid") {
+            if (type === "מבוגרים" && item.service.includes("מבוגרים")) used++;
+            if (type === "ילדים" && item.service.includes("ילדים")) used++;
         }
     });
 

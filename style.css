@@ -1343,10 +1343,9 @@ body {
 }
 .admin-page {
     min-height: 100vh;
-    padding: 60px;
+    padding: 40px 0 0;
     background: linear-gradient(135deg, #efe1cf, #d6b895);
     text-align: center;
-    padding-bottom: 40px;
 }
 
 .admin-page h1 {
@@ -1618,18 +1617,22 @@ body {
     cursor: not-allowed;
 }
 .admin-footer {
-    width: 100vw;
-    margin-left: calc(50% - 50vw);
-    margin-right: calc(50% - 50vw);
-    margin-top: 90px;
+    width: 100%;
     background: #111;
     color: #f5e6d3;
     text-align: center;
     padding: 22px 10px;
+    margin-top: 80px;
     font-size: 18px;
     font-weight: bold;
     border-radius: 0;
 }
+.admin-logo {
+    width: 120px;
+    display: block;
+    margin: 0 30px 20px auto;
+}
+
 @media (max-width: 600px) {
     .admin-page {
         padding: 18px 10px;
@@ -1687,4 +1690,9 @@ body {
         font-size: 14px;
         padding: 14px;
     }
+    .admin-logo {
+    width: 95px;
+    display: block;
+    margin: 0 auto 15px;
+}
 }

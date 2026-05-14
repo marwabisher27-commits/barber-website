@@ -330,12 +330,7 @@ async function markArrivedPaid(appointmentId, day, time) {
     if (!appointmentSnap.exists()) return;
 
     const appointment = appointmentSnap.data();
-
-    let amount = 0;
-
-    if (appointment.payment !== "package" && !appointment.usedPackage && !appointment.package) {
-        amount = getServicePrice(appointment.service);
-    }
+let amount = getServicePrice(appointment.service);
 
     await addDoc(collection(db, "income"), {
         type: "appointment",

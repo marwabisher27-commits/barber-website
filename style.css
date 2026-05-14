@@ -1617,14 +1617,74 @@ body {
     opacity: 0.55;
     cursor: not-allowed;
 }
-.admin-footer{
-    width: 100%;
+.admin-footer {
+    width: 100vw;
+    margin-left: calc(50% - 50vw);
+    margin-right: calc(50% - 50vw);
+    margin-top: 90px;
     background: #111;
     color: #f5e6d3;
     text-align: center;
-    padding: 18px;
-    margin-top: 40px;
-    border-radius: 12px 12px 0 0;
+    padding: 22px 10px;
     font-size: 18px;
     font-weight: bold;
+    border-radius: 0;
+}
+@media (max-width: 600px) {
+    .admin-page {
+        padding: 18px 10px;
+    }
+
+    .admin-page h1 {
+        font-size: 34px;
+    }
+
+    .admin-shop-name {
+        font-size: 24px;
+        text-align: center;
+    }
+
+    .admin-schedule {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+        width: 100%;
+        margin: 20px auto;
+    }
+
+    .admin-day-box {
+        grid-column: 1 / -1;
+        padding: 10px;
+    }
+
+    .admin-day-box h2 {
+        font-size: 26px;
+        text-align: center;
+    }
+
+    .admin-slot {
+        min-height: 140px;
+        padding: 12px;
+        border-radius: 14px;
+    }
+
+    .admin-slot strong {
+        font-size: 28px;
+    }
+
+    .admin-slot p {
+        font-size: 15px;
+    }
+
+    .admin-slot button,
+    .admin-whatsapp {
+        font-size: 13px;
+        padding: 8px;
+        margin-top: 6px;
+    }
+
+    .admin-footer {
+        font-size: 14px;
+        padding: 14px;
+    }
 }

@@ -1628,9 +1628,10 @@ body {
     border-radius: 0;
 }
 .admin-logo {
-    width: 120px;
+    width: 20px;
+    height: auto;
     display: block;
-    margin: 0 30px 20px auto;
+    margin: 0 25px 10px auto;
 }
 
 @media (max-width: 600px) {
@@ -1690,9 +1691,8 @@ body {
         font-size: 14px;
         padding: 14px;
     }
-    .admin-logo {
-    width: 95px;
-    display: block;
-    margin: 0 auto 15px;
+.admin-logo {
+    width: 25px;
+    margin: 0 15px 10px auto;
 }
 }

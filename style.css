@@ -1239,9 +1239,9 @@ body {
 }
 
 @media (max-width: 600px) {
-    .admin-page {
-        padding: 18px 10px;
-    }
+   .admin-page {
+    padding-top: 0 !important;
+}
 
     .admin-page h1 {
         font-size: 34px;
@@ -1251,20 +1251,16 @@ body {
         font-size: 24px;
         text-align: center;
     }
-
-    .admin-schedule {
+.admin-schedule {
         display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 12px;
-        width: 100%;
-        margin: 20px auto;
+        grid-template-columns: 1fr;
+        gap: 18px;
+        padding: 0 12px;
     }
 
     .admin-day-box {
-        background: rgba(247, 234, 216, 0.95);
-        border-radius: 22px;
-        padding: 18px 12px;
-        margin: 22px 10px;
+        margin: 18px 0;
+        padding: 14px;
     }
 
     .admin-day-box h2 {
@@ -1276,9 +1272,9 @@ body {
     }
 
     .admin-slot {
-        margin: 12px 0;
+        width: 100%;
+        min-height: auto;
         padding: 16px;
-        border-radius: 18px;
     }
 
     .admin-slot strong {
@@ -1293,10 +1289,18 @@ body {
     .admin-slot button,
     .admin-whatsapp,
     .admin-call {
-        font-size: 13px;
-        padding: 8px;
-        margin-top: 6px;
-    }
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    margin-top: 8px;
+    padding: 10px;
+    border-radius: 12px;
+    background: #8a5a2b;
+    color: white;
+    text-decoration: none;
+    font-size: 24px;
+}
 
     .admin-footer {
         font-size: 14px;
@@ -1318,6 +1322,8 @@ body {
     padding: 14px 30px;
     box-sizing: border-box;
     margin-bottom: 35px;
+    margin-top: 0 !important;
+
 }
 
 .admin-header-title {

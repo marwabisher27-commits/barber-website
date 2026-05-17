@@ -119,10 +119,9 @@ async function showFullWeek() {
                                 WhatsApp
                             </a>
 
-                            <a class="admin-call"
-                               href="tel:${appointment.phone}">
-                                   התקשרות
-                            </a>
+                            <a class="admin-call" href="tel:${appointment.phone}">
+    📞
+</a>
                         ` : ""}
                     `;
                 } else if (blockedSnap.exists()) {

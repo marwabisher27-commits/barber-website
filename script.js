@@ -39,4 +39,4 @@ function showMessage(text) {
     setTimeout(function() {
         message.remove();
     }, 1800);
-}
+ }

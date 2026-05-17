@@ -1,5 +1,6 @@
 import { db, collection, doc, deleteDoc } from "./firebase.js";
 import { getDocs, getDoc, setDoc, addDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+
 const scheduleBox = document.getElementById("adminSchedule");
 
 const workingHours = {
@@ -13,38 +14,17 @@ const workingHours = {
 };
 
 const dayNames = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];
-const servicePrices = {
-    "תספורת מבוגרים": 70,
-    "תספורת ילדים": 30,
-    "סידור זקן": 20,
-    "5 תספורות מבוגרים": 320,
-    "5 תספורות ילדים": 120
-};
+
+let allAppointments = [];
 
 function getServicePrice(service) {
     service = service.trim();
 
-    if (service.includes("5") && service.includes("מבוגרים")) return 320;
-    if (service.includes("5") && service.includes("ילדים")) return 120;
     if (service.includes("מבוגרים")) return 70;
     if (service.includes("ילדים")) return 30;
     if (service.includes("זקן")) return 20;
 
     return 0;
-}
-let allAppointments = [];
-
-async function getCurrentPackageText(appointment) {
-    if (!appointment || (!appointment.usedPackage && !appointment.package)) return "";
-
-    const typeKey = appointment.service.includes("ילדים") ? "_kids" : "_adults";
-    const packageRef = doc(db, "packages", appointment.phone + typeKey);
-    const packageSnap = await getDoc(packageRef);
-
-    if (!packageSnap.exists()) return "";
-
-    const packageData = packageSnap.data();
-    return `<p>חבילה: ${packageData.type} | נותרו: ${packageData.remainingCuts}</p>`;
 }
 
 function isPastAppointment(day, time) {
@@ -60,43 +40,6 @@ function isPastAppointment(day, time) {
     appointmentDate.setHours(hour, minute, 0, 0);
 
     return new Date() > appointmentDate;
-}
-
-async function recalculatePackage(phone, type) {
-    let used = 0;
-
-    const appointmentsSnap = await getDocs(collection(db, "appointments"));
-    appointmentsSnap.forEach(function(document) {
-        const app = document.data();
-
-        if (app.phone === phone) {
-            if (type === "מבוגרים" && app.service.includes("מבוגרים")) used++;
-            if (type === "ילדים" && app.service.includes("ילדים")) used++;
-        }
-    });
-
-    const incomeSnap = await getDocs(collection(db, "income"));
-    incomeSnap.forEach(function(document) {
-        const item = document.data();
-
-        if (item.phone === phone && item.status === "arrived_paid") {
-            if (type === "מבוגרים" && item.service.includes("מבוגרים")) used++;
-            if (type === "ילדים" && item.service.includes("ילדים")) used++;
-        }
-    });
-
-    const packageId = type === "מבוגרים" ? phone + "_adults" : phone + "_kids";
-    const packageRef = doc(db, "packages", packageId);
-    const packageSnap = await getDoc(packageRef);
-
-    if (packageSnap.exists()) {
-        const packageData = packageSnap.data();
-
-        await setDoc(packageRef, {
-            ...packageData,
-            remainingCuts: Math.max(5 - used, 0)
-        });
-    }
 }
 
 async function loadAppointments() {
@@ -150,7 +93,12 @@ async function showFullWeek() {
                     return app.day === fullDay && app.time === time;
                 });
 
-                const packageText = appointment ? await getCurrentPackageText(appointment) : "";
+                const slotId =
+                    fullDay.replaceAll(" ", "_").replaceAll("/", "-") +
+                    "_" +
+                    time.replace(":", "-");
+
+                const blockedSnap = await getDoc(doc(db, "blockedSlots", slotId));
 
                 const slot = document.createElement("div");
                 slot.className = "admin-slot";
@@ -159,53 +107,66 @@ async function showFullWeek() {
                     slot.classList.add("busy");
 
                     const actionButtons = isPastAppointment(appointment.day, appointment.time)
-    ? `<p>התור עבר ולא ניתן לבטל</p>`
-    : `
-        <button onclick="adminCancelBooking('${appointment.id}', '${appointment.day}', '${appointment.time}')">
-            ביטול תור
-        </button>
+                        ? `<p class="past-admin-text">התור עבר ולא ניתן לבטל</p>`
+                        : `
+                            <button onclick="adminCancelBooking('${appointment.id}', '${appointment.day}', '${appointment.time}')">
+                                ביטול תור
+                            </button>
 
-        <button onclick="markArrivedPaid('${appointment.id}', '${appointment.day}', '${appointment.time}')">
-            הגיע ושילם
-        </button>
+                            <button onclick="markArrivedPaid('${appointment.id}', '${appointment.day}', '${appointment.time}')">
+                                הגיע ושילם
+                            </button>
 
-        <button onclick="markNoShow('${appointment.id}', '${appointment.day}', '${appointment.time}')">
-            לא הגיע
-        </button>
-    `;
+                            <button onclick="markNoShow('${appointment.id}', '${appointment.day}', '${appointment.time}')">
+                                לא הגיע
+                            </button>
+                        `;
+
+                    const phoneText = appointment.phone ? `<p>${appointment.phone}</p>` : "";
+
                     slot.innerHTML = `
                         <strong>${time}</strong>
                         <p>${appointment.name}</p>
-                        <p>${appointment.phone}</p>
+                        ${phoneText}
                         <p>${appointment.service}</p>
-                        <p>${appointment.payment === "cash" ? "מזומן במספרה" : appointment.payment === "package" ? "חבילה" : "אשראי"}</p>
-                        ${packageText}
                         ${actionButtons}
-                        <a class="admin-whatsapp"
-                           href="https://wa.me/972${appointment.phone.substring(1)}"
-                           target="_blank">
-                            WhatsApp
-                        </a>
+
+                        ${appointment.phone ? `
+                            <a class="admin-whatsapp"
+                               href="https://wa.me/972${appointment.phone.substring(1)}"
+                               target="_blank">
+                                WhatsApp
+                            </a>
+                        ` : ""}
+                    `;
+                } else if (blockedSnap.exists()) {
+                    slot.classList.add("busy");
+                    slot.innerHTML = `
+                        <strong>${time}</strong>
+                        <p>לא זמין</p>
+                        <button onclick="unblockSlot('${fullDay}', '${time}')">
+                            פתח שעה
+                        </button>
                     `;
                 } else {
-    const blockButton = isPastAppointment(fullDay, time)
-        ? `<p class="past-admin-text">השעה עברה</p>`
-        : `
-            <button onclick="registerWalkIn('${fullDay}', '${time}')">
-                רישום לקוח בשעה זו
-            </button>
+                    const blockButton = isPastAppointment(fullDay, time)
+                        ? `<p class="past-admin-text">השעה עברה</p>`
+                        : `
+                            <button onclick="registerWalkIn('${fullDay}', '${time}')">
+                                רישום לקוח בשעה זו
+                            </button>
 
-            <button onclick="blockSlot('${fullDay}', '${time}')">
-                סגור שעה
-            </button>
-        `;
+                            <button onclick="blockSlot('${fullDay}', '${time}')">
+                                סגור שעה
+                            </button>
+                        `;
 
-    slot.innerHTML = `
-        <strong>${time}</strong>
-        <p>פנוי</p>
-        ${blockButton}
-    `;
-}
+                    slot.innerHTML = `
+                        <strong>${time}</strong>
+                        <p>פנוי</p>
+                        ${blockButton}
+                    `;
+                }
 
                 dayBox.appendChild(slot);
             }
@@ -240,97 +201,19 @@ function createTimes(start, end) {
 async function adminCancelBooking(appointmentId, day, time) {
     const ok = await showAdminConfirm("לבטל את התור הזה?");
     if (!ok) return;
-
-    const appointmentRef = doc(db, "appointments", appointmentId);
-    const appointmentSnap = await getDoc(appointmentRef);
-
-    let oldAppointment = null;
-
-    if (appointmentSnap.exists()) {
-        oldAppointment = appointmentSnap.data();
-    }
-
-    const slotId = day.replaceAll(" ", "_").replaceAll("/", "-") + "_" + time.replace(":", "-");
-
-    await deleteDoc(doc(db, "appointments", appointmentId));
-    await deleteDoc(doc(db, "bookedSlots", slotId));
-
-    if (oldAppointment) {
-        if (oldAppointment.service.includes("מבוגרים")) {
-            await recalculatePackage(oldAppointment.phone, "מבוגרים");
-        }
-
-        if (oldAppointment.service.includes("ילדים")) {
-            await recalculatePackage(oldAppointment.phone, "ילדים");
-        }
-    }
-
-    showSuccessPopup("התור בוטל בהצלחה");
-    await loadAppointments();
-}
-
-function showAdminConfirm(message) {
-    return new Promise((resolve) => {
-        const popup = document.createElement("div");
-        popup.className = "admin-popup";
-
-        popup.innerHTML = `
-            <div class="admin-popup-card">
-                <h2>אישור פעולה</h2>
-                <p>${message}</p>
-                <div class="admin-popup-actions">
-                    <button class="confirm-yes">כן, לבטל</button>
-                    <button class="confirm-no">חזרה</button>
-                </div>
-            </div>
-        `;
-
-        document.body.appendChild(popup);
-
-        popup.querySelector(".confirm-yes").onclick = function() {
-            popup.remove();
-            resolve(true);
-        };
-
-        popup.querySelector(".confirm-no").onclick = function() {
-            popup.remove();
-            resolve(false);
-        };
-    });
-}
-
-function showSuccessPopup(message) {
-    const toast = document.createElement("div");
-    toast.className = "admin-toast";
-    toast.textContent = message;
-    document.body.appendChild(toast);
-
-    setTimeout(function() {
-        toast.remove();
-    }, 1800);
-}
-
-window.adminCancelBooking = adminCancelBooking;
-window.loadAppointments = loadAppointments;
-async function blockSlot(day, time) {
-    const ok = await showAdminConfirm("לסגור את השעה הזאת?");
-
-    if (!ok) return;
-
+    
     const slotId =
         day.replaceAll(" ", "_").replaceAll("/", "-") +
         "_" +
         time.replace(":", "-");
 
-    await setDoc(doc(db, "blockedSlots", slotId), {
-        day: day,
-        time: time,
-        createdAt: new Date()
-    });
+    await deleteDoc(doc(db, "appointments", appointmentId));
+    await deleteDoc(doc(db, "bookedSlots", slotId));
 
-    showSuccessPopup("השעה נסגרה בהצלחה");
+    showSuccessPopup("התור בוטל בהצלחה");
     await loadAppointments();
 }
+
 async function markArrivedPaid(appointmentId, day, time) {
     const appointmentRef = doc(db, "appointments", appointmentId);
     const appointmentSnap = await getDoc(appointmentRef);
@@ -338,29 +221,31 @@ async function markArrivedPaid(appointmentId, day, time) {
     if (!appointmentSnap.exists()) return;
 
     const appointment = appointmentSnap.data();
-let amount = 0;
 
-if (!appointment.usedPackage) {
-    amount = getServicePrice(appointment.service);
-}
-if (appointment.source === "admin") {
-    amount = Number(await showInputPopup("כמה שילם הלקוח?"));
-    if (!amount) return;
-}
+    let amount = getServicePrice(appointment.service);
+
+    if (appointment.source === "admin") {
+        const manualAmount = Number(await showInputPopup("כמה שילם הלקוח?"));
+        if (!manualAmount) return;
+        amount = manualAmount;
+    }
+
     await addDoc(collection(db, "income"), {
         type: "appointment",
         status: "arrived_paid",
         name: appointment.name,
-        phone: appointment.phone,
+        phone: appointment.phone || "",
         service: appointment.service,
-        payment: appointment.payment,
         amount: amount,
         day: appointment.day,
         time: appointment.time,
         createdAt: new Date()
     });
 
-    const slotId = day.replaceAll(" ", "_").replaceAll("/", "-") + "_" + time.replace(":", "-");
+    const slotId =
+        day.replaceAll(" ", "_").replaceAll("/", "-") +
+        "_" +
+        time.replace(":", "-");
 
     await deleteDoc(doc(db, "appointments", appointmentId));
     await deleteDoc(doc(db, "bookedSlots", slotId));
@@ -381,7 +266,7 @@ async function markNoShow(appointmentId, day, time) {
         type: "appointment",
         status: "no_show",
         name: appointment.name,
-        phone: appointment.phone,
+        phone: appointment.phone || "",
         service: appointment.service,
         amount: 0,
         day: appointment.day,
@@ -389,18 +274,78 @@ async function markNoShow(appointmentId, day, time) {
         createdAt: new Date()
     });
 
-    const slotId = day.replaceAll(" ", "_").replaceAll("/", "-") + "_" + time.replace(":", "-");
+    const slotId =
+        day.replaceAll(" ", "_").replaceAll("/", "-") +
+        "_" +
+        time.replace(":", "-");
 
     await deleteDoc(doc(db, "appointments", appointmentId));
     await deleteDoc(doc(db, "bookedSlots", slotId));
-    if (appointment.service.includes("מבוגרים")) {
-    await recalculatePackage(appointment.phone, "מבוגרים");
+
+    showSuccessPopup("התור סומן כלקוח שלא הגיע");
+    await loadAppointments();
 }
 
-if (appointment.service.includes("ילדים")) {
-    await recalculatePackage(appointment.phone, "ילדים");
+async function blockSlot(day, time) {
+    const ok = await showAdminConfirm("לסגור את השעה הזאת?");
+    if (!ok) return;
+
+    const slotId =
+        day.replaceAll(" ", "_").replaceAll("/", "-") +
+        "_" +
+        time.replace(":", "-");
+
+    await setDoc(doc(db, "blockedSlots", slotId), {
+        day: day,
+        time: time,
+        createdAt: new Date()
+    });
+
+    showSuccessPopup("השעה נסגרה בהצלחה");
+    await loadAppointments();
 }
-    showSuccessPopup("התור סומן כלקוח שלא הגיע");
+
+async function unblockSlot(day, time) {
+    const slotId =
+        day.replaceAll(" ", "_").replaceAll("/", "-") +
+        "_" +
+        time.replace(":", "-");
+
+    await deleteDoc(doc(db, "blockedSlots", slotId));
+
+    showSuccessPopup("השעה נפתחה בהצלחה");
+    await loadAppointments();
+}
+
+async function registerWalkIn(day, time) {
+    const name = await showInputPopup("שם לקוח");
+    if (!name) return;
+
+    const service = await showInputPopup("שירות: תספורת מבוגרים / תספורת ילדים / סידור זקן");
+    if (!service) return;
+
+    const slotId =
+        day.replaceAll(" ", "_").replaceAll("/", "-") +
+        "_" +
+        time.replace(":", "-");
+
+    await setDoc(doc(db, "bookedSlots", slotId), {
+        day: day,
+        time: time,
+        createdAt: new Date()
+    });
+
+    await addDoc(collection(db, "appointments"), {
+        name: name,
+        phone: "",
+        service: service,
+        day: day,
+        time: time,
+        createdAt: new Date(),
+        source: "admin"
+    });
+
+    showSuccessPopup("הלקוח נרשם בהצלחה");
     await loadAppointments();
 }
 
@@ -429,69 +374,7 @@ async function addManualIncome() {
     document.getElementById("manualDescription").value = "";
     document.getElementById("manualAmount").value = "";
 }
-window.blockSlot = blockSlot;
-window.markArrivedPaid = markArrivedPaid;
-window.markNoShow = markNoShow;
-window.addManualIncome = addManualIncome;
-let lastAppointmentsCount = 0;
-let firstCheck = true;
 
-function playBeep() {
-    const audio = new Audio("https://actions.google.com/sounds/v1/alarms/beep_short.ogg");
-    audio.play();
-}
-
-async function checkNewActivity() {
-    const apps = await getDocs(collection(db, "appointments"));
-    const orders = await getDocs(collection(db, "orders"));
-
-    const total = apps.size + orders.size;
-
-    if (firstCheck) {
-        lastAppointmentsCount = total;
-        firstCheck = false;
-        return;
-    }
-
-    if (total > lastAppointmentsCount) {
-        showSuccessPopup("התקבלה הזמנה חדשה");
-        playBeep();
-    }
-
-    lastAppointmentsCount = total;
-}
-async function registerWalkIn(day, time) {
-    const name = await showInputPopup("שם לקוח");
-    if (!name) return;
-
-    const service = await showInputPopup("שירות: תספורת מבוגרים / תספורת ילדים / סידור זקן");
-    if (!service) return;
-
-    const slotId =
-        day.replaceAll(" ", "_").replaceAll("/", "-") +
-        "_" +
-        time.replace(":", "-");
-
-    await setDoc(doc(db, "bookedSlots", slotId), {
-        day: day,
-        time: time,
-        createdAt: new Date()
-    });
-
-    await addDoc(collection(db, "appointments"), {
-        name: name,
-        phone: "",
-        service: service,
-        payment: "manual",
-        day: day,
-        time: time,
-        createdAt: new Date(),
-        source: "admin"
-    });
-
-    showSuccessPopup("הלקוח נרשם בהצלחה");
-    await loadAppointments();
-}
 function showInputPopup(label) {
     return new Promise((resolve) => {
         const popup = document.createElement("div");
@@ -526,7 +409,83 @@ function showInputPopup(label) {
     });
 }
 
+function showAdminConfirm(message) {
+    return new Promise((resolve) => {
+        const popup = document.createElement("div");
+        popup.className = "admin-popup";
+
+        popup.innerHTML = `
+            <div class="admin-popup-card">
+                <h2>אישור פעולה</h2>
+                <p>${message}</p>
+                <div class="admin-popup-actions">
+                    <button class="confirm-yes">כן</button>
+                    <button class="confirm-no">חזרה</button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(popup);
+
+        popup.querySelector(".confirm-yes").onclick = function() {
+            popup.remove();
+            resolve(true);
+        };
+
+        popup.querySelector(".confirm-no").onclick = function() {
+            popup.remove();
+            resolve(false);
+        };
+    });
+}
+
+function showSuccessPopup(message) {
+    const toast = document.createElement("div");
+    toast.className = "admin-toast";
+    toast.textContent = message;
+    document.body.appendChild(toast);
+
+    setTimeout(function() {
+        toast.remove();
+    }, 1800);
+}
+
+let lastAppointmentsCount = 0;
+let firstCheck = true;
+
+function playBeep() {
+    const audio = new Audio("https://actions.google.com/sounds/v1/alarms/beep_short.ogg");
+    audio.play().catch(() => {});
+}
+
+async function checkNewActivity() {
+    const apps = await getDocs(collection(db, "appointments"));
+    const total = apps.size;
+
+    if (firstCheck) {
+        lastAppointmentsCount = total;
+        firstCheck = false;
+        return;
+    }
+
+    if (total > lastAppointmentsCount) {
+        showSuccessPopup("התקבל תור חדש");
+        playBeep();
+        await loadAppointments();
+    }
+
+    lastAppointmentsCount = total;
+}
+
+window.adminCancelBooking = adminCancelBooking;
+window.markArrivedPaid = markArrivedPaid;
+window.markNoShow = markNoShow;
+window.blockSlot = blockSlot;
+window.unblockSlot = unblockSlot;
 window.registerWalkIn = registerWalkIn;
+window.addManualIncome = addManualIncome;
+window.loadAppointments = loadAppointments;
+
 setInterval(checkNewActivity, 15000);
 checkNewActivity();
 loadAppointments();

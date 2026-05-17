@@ -5,7 +5,6 @@ const timesGrid = document.getElementById("timesGrid");
 const serviceSelect = document.getElementById("serviceSelect");
 const customerName = document.getElementById("customerName");
 const customerPhone = document.getElementById("customerPhone");
-const appointmentPaymentMethod = document.getElementById("appointmentPaymentMethod");
 
 let selectedDay = "";
 let selectedTime = "";
@@ -70,7 +69,6 @@ serviceSelect.addEventListener("change", function() {
     updateSummary();
 });
 
-appointmentPaymentMethod.addEventListener("change", updateSummary);
 function isPastTime(fullDay, time) {
     const datePart = fullDay.split(" ")[1];
     const [dayNum, monthNum] = datePart.split("/").map(Number);
@@ -83,6 +81,7 @@ function isPastTime(fullDay, time) {
 
     return new Date() > appointmentDate;
 }
+
 async function showTimes(dayName, fullDay) {
     timesGrid.innerHTML = "";
 
@@ -99,28 +98,31 @@ async function showTimes(dayName, fullDay) {
         const button = document.createElement("button");
         button.className = "time-card";
         button.textContent = time;
+
+        const slotId = fullDay.replaceAll(" ", "_").replaceAll("/", "-") + "_" + time.replace(":", "-");
+
         if (isPastTime(fullDay, time)) {
-          button.classList.add("past-time");
-          button.textContent = time + " עבר";
-          button.disabled = true;
+            button.classList.add("past-time");
+            button.textContent = time + " עבר";
+            button.disabled = true;
         }
-        const slotId = fullDay.replaceAll(" ", "_").replace("/", "-") + "_" + time.replace(":", "-");
-        const slotRef = doc(db, "bookedSlots", slotId);
-        const slotSnap = await getDoc(slotRef);
+
+        const slotSnap = await getDoc(doc(db, "bookedSlots", slotId));
 
         if (slotSnap.exists()) {
             button.classList.add("booked");
             button.textContent = time + " תפוס";
             button.disabled = true;
         }
-        const blockedRef = doc(db, "blockedSlots", slotId);
-        const blockedSnap = await getDoc(blockedRef);
+
+        const blockedSnap = await getDoc(doc(db, "blockedSlots", slotId));
 
         if (blockedSnap.exists()) {
-           button.classList.add("booked");
-           button.textContent = time + " לא זמין";
-           button.disabled = true;
-         }
+            button.classList.add("booked");
+            button.textContent = time + " לא זמין";
+            button.disabled = true;
+        }
+
         button.addEventListener("click", function() {
             selectedTime = time;
 
@@ -146,9 +148,7 @@ function createTimes(start, end) {
         let hour = Math.floor(current / 60);
         let minute = current % 60;
 
-        result.push(
-            String(hour).padStart(2, "0") + ":" + String(minute).padStart(2, "0")
-        );
+        result.push(String(hour).padStart(2, "0") + ":" + String(minute).padStart(2, "0"));
 
         current += 30;
     }
@@ -164,7 +164,6 @@ function updateSummary() {
         <p>שירות: ${selectedService || "לא נבחר"}</p>
         <p>יום: ${selectedDay || "לא נבחר"}</p>
         <p>שעה: ${selectedTime || "לא נבחר"}</p>
-        <p>תשלום: ${appointmentPaymentMethod.value || "לא נבחר"}</p>
     `;
 }
 
@@ -173,15 +172,14 @@ async function confirmBooking() {
         serviceSelect.value === "" ||
         selectedDay === "" ||
         selectedTime === "" ||
-        appointmentPaymentMethod.value === "" ||
-        customerName.value === "" ||
-        customerPhone.value === ""
+        customerName.value.trim() === "" ||
+        customerPhone.value.trim() === ""
     ) {
         showMessage("נא למלא את כל הפרטים");
         return;
     }
 
-    if (!/^[0-9]{10}$/.test(customerPhone.value)) {
+    if (!/^[0-9]{10}$/.test(customerPhone.value.trim())) {
         showMessage("מספר טלפון חייב להיות 10 ספרות");
         return;
     }
@@ -194,102 +192,34 @@ async function confirmBooking() {
         showMessage("השעה הזאת כבר תפוסה");
         return;
     }
-     let usedPackage = null;
 
-if (serviceSelect.value.includes("מבוגרים") && !serviceSelect.value.includes("5")) {
-    const packageRef = doc(db, "packages", customerPhone.value + "_adults");
-    const packageSnap = await getDoc(packageRef);
+    const blockedSnap = await getDoc(doc(db, "blockedSlots", slotId));
 
-    if (packageSnap.exists() && packageSnap.data().remainingCuts > 0) {
-        const packageData = packageSnap.data();
-        usedPackage = {
-            type: "מבוגרים",
-            remainingBefore: packageData.remainingCuts,
-            remainingAfter: packageData.remainingCuts - 1
-        };
-
-        await setDoc(packageRef, {
-            ...packageData,
-            remainingCuts: packageData.remainingCuts - 1
-        });
-
-        appointmentPaymentMethod.value = "package";
-        showMessage("נותרו לך " + usedPackage.remainingAfter + " תספורות");
+    if (blockedSnap.exists()) {
+        showMessage("השעה הזאת לא זמינה");
+        return;
     }
-}
 
-if (serviceSelect.value.includes("ילדים") && !serviceSelect.value.includes("5")) {
-    const packageRef = doc(db, "packages", customerPhone.value + "_kids");
-    const packageSnap = await getDoc(packageRef);
-
-    if (packageSnap.exists() && packageSnap.data().remainingCuts > 0) {
-        const packageData = packageSnap.data();
-        usedPackage = {
-            type: "ילדים",
-            remainingBefore: packageData.remainingCuts,
-            remainingAfter: packageData.remainingCuts - 1
-        };
-
-        await setDoc(packageRef, {
-            ...packageData,
-            remainingCuts: packageData.remainingCuts - 1
-        });
-
-        appointmentPaymentMethod.value = "package";
-        showMessage("נותרו לך " + usedPackage.remainingAfter + " תספורות");
-    }
-}
     await setDoc(slotRef, {
         day: selectedDay,
         time: selectedTime,
         createdAt: new Date()
     });
 
-    let packageInfo = null;
-
-    if (serviceSelect.value.includes("5") && serviceSelect.value.includes("מבוגרים")) {
-
-        packageInfo = {
-            phone: customerPhone.value,
-            type: "מבוגרים",
-            totalCuts: 5,
-            remainingCuts: 4,
-            createdAt: new Date()
-        };
-
-        await setDoc(doc(db, "packages", customerPhone.value + "_adults"), packageInfo);
-    }
-
-    if (serviceSelect.value.includes("5") && serviceSelect.value.includes("ילדים")) {
-
-        packageInfo = {
-            phone: customerPhone.value,
-            type: "ילדים",
-            totalCuts: 5,
-            remainingCuts: 4,
-            createdAt: new Date()
-        };
-
-        await setDoc(doc(db, "packages", customerPhone.value + "_kids"), packageInfo);
-    }
-
-   await addDoc(collection(db, "appointments"), {
-    service: serviceSelect.value,
-    day: selectedDay,
-    time: selectedTime,
-    payment: appointmentPaymentMethod.value,
-    name: customerName.value,
-    phone: customerPhone.value,
-    package: packageInfo,
-    usedPackage: usedPackage,
-    createdAt: new Date()
-});
+    await addDoc(collection(db, "appointments"), {
+        service: serviceSelect.value,
+        day: selectedDay,
+        time: selectedTime,
+        name: customerName.value.trim(),
+        phone: customerPhone.value.trim(),
+        payment: "",
+        createdAt: new Date()
+    });
 
     localStorage.setItem("appointment", JSON.stringify({
         service: serviceSelect.value,
         day: selectedDay,
-        time: selectedTime,
-        payment: appointmentPaymentMethod.value
+        time: selectedTime
     }));
 
     showMessage("התור נקבע בהצלחה");

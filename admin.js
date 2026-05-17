@@ -348,7 +348,8 @@ let lastAppointmentsCount = 0;
 let firstCheck = true;
 
 function playBeep() {
-    const audio = new Audio("https://actions.google.com/sounds/v1/alarms/beep_short.ogg");
+    const audio = new Audio("https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg");
+    audio.volume = 1;
     audio.play().catch(() => {});
 }
 

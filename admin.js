@@ -113,10 +113,15 @@ async function showFullWeek() {
                         ${cancelButton}
 
                         ${appointment.phone ? `
-                            <a class="admin-whatsapp"
-                               href="https://wa.me/972${appointment.phone.substring(1)}"
-                               target="_blank">
+                           <a class="admin-whatsapp"
+                              href="https://wa.me/972${appointment.phone.substring(1)}"
+                            target="_blank">
                                 WhatsApp
+                            </a>
+
+                            <a class="admin-call"
+                               href="tel:${appointment.phone}">
+                                   התקשרות
                             </a>
                         ` : ""}
                     `;
@@ -231,6 +236,9 @@ async function registerWalkIn(day, time) {
     const name = await showInputPopup("שם לקוח");
     if (!name) return;
 
+    const phone = await showInputPopup("מספר טלפון");
+    if (!phone) return;
+
     const service = await showInputPopup("שירות: תספורת מבוגרים / תספורת ילדים / סידור זקן");
     if (!service) return;
 
@@ -247,7 +255,7 @@ async function registerWalkIn(day, time) {
 
     await setDoc(doc(db, "appointments", slotId), {
         name: name,
-        phone: "",
+        phone: phone,
         service: service,
         day: day,
         time: time,

@@ -1261,31 +1261,38 @@ body {
     }
 
     .admin-day-box {
-        grid-column: 1 / -1;
-        padding: 10px;
+        background: rgba(247, 234, 216, 0.95);
+        border-radius: 22px;
+        padding: 18px 12px;
+        margin: 22px 10px;
     }
 
     .admin-day-box h2 {
-        font-size: 26px;
-        text-align: center;
+        background: #2b1d14;
+        color: #f3d6a3;
+        padding: 14px;
+        border-radius: 14px;
+        font-size: 24px;
     }
 
     .admin-slot {
-        min-height: 140px;
-        padding: 12px;
-        border-radius: 14px;
+        margin: 12px 0;
+        padding: 16px;
+        border-radius: 18px;
     }
 
     .admin-slot strong {
-        font-size: 28px;
+        font-size: 30px;
     }
 
     .admin-slot p {
-        font-size: 15px;
+        font-size: 16px;
+        margin: 6px 0;
     }
 
     .admin-slot button,
-    .admin-whatsapp {
+    .admin-whatsapp,
+    .admin-call {
         font-size: 13px;
         padding: 8px;
         margin-top: 6px;
@@ -1295,8 +1302,45 @@ body {
         font-size: 14px;
         padding: 14px;
     }
-.admin-logo {
-    width: 55px;
-    margin: 0 15px 10px auto;
+
+    .admin-logo {
+        width: 55px;
+        margin: 0 15px 10px auto;
+    }
 }
+ .admin-header-bar {
+    width: 100%;
+    background: #111;
+    color: #f5e6d3;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 30px;
+    box-sizing: border-box;
+    margin-bottom: 35px;
+}
+
+.admin-header-title {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.admin-header-logo {
+    width: 65px;
+    height: auto;
+}
+
+@media (max-width: 600px) {
+    .admin-header-bar {
+        padding: 12px 16px;
+        margin-bottom: 25px;
+    }
+
+    .admin-header-title {
+        font-size: 18px;
+    }
+
+    .admin-header-logo {
+        width: 50px;
+    }
 }

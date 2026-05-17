@@ -1,5 +1,5 @@
 import { db, collection, doc, deleteDoc } from "./firebase.js";
-import { getDocs, getDoc, setDoc, addDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+import { getDocs, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 
 const scheduleBox = document.getElementById("adminSchedule");
 
@@ -14,18 +14,7 @@ const workingHours = {
 };
 
 const dayNames = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];
-
 let allAppointments = [];
-
-function getServicePrice(service) {
-    service = service.trim();
-
-    if (service.includes("מבוגרים")) return 70;
-    if (service.includes("ילדים")) return 30;
-    if (service.includes("זקן")) return 20;
-
-    return 0;
-}
 
 function isPastAppointment(day, time) {
     const datePart = day.split(" ")[1];
@@ -106,19 +95,11 @@ async function showFullWeek() {
                 if (appointment) {
                     slot.classList.add("busy");
 
-                    const actionButtons = isPastAppointment(appointment.day, appointment.time)
+                    const cancelButton = isPastAppointment(appointment.day, appointment.time)
                         ? `<p class="past-admin-text">התור עבר ולא ניתן לבטל</p>`
                         : `
                             <button onclick="adminCancelBooking('${appointment.id}', '${appointment.day}', '${appointment.time}')">
                                 ביטול תור
-                            </button>
-
-                            <button onclick="markArrivedPaid('${appointment.id}', '${appointment.day}', '${appointment.time}')">
-                                הגיע ושילם
-                            </button>
-
-                            <button onclick="markNoShow('${appointment.id}', '${appointment.day}', '${appointment.time}')">
-                                לא הגיע
                             </button>
                         `;
 
@@ -129,7 +110,7 @@ async function showFullWeek() {
                         <p>${appointment.name}</p>
                         ${phoneText}
                         <p>${appointment.service}</p>
-                        ${actionButtons}
+                        ${cancelButton}
 
                         ${appointment.phone ? `
                             <a class="admin-whatsapp"
@@ -178,6 +159,7 @@ async function showFullWeek() {
 
 function createTimes(start, end) {
     const result = [];
+
     let [startHour, startMinute] = start.split(":").map(Number);
     let [endHour, endMinute] = end.split(":").map(Number);
 
@@ -201,7 +183,7 @@ function createTimes(start, end) {
 async function adminCancelBooking(appointmentId, day, time) {
     const ok = await showAdminConfirm("לבטל את התור הזה?");
     if (!ok) return;
-    
+
     const slotId =
         day.replaceAll(" ", "_").replaceAll("/", "-") +
         "_" +
@@ -211,78 +193,6 @@ async function adminCancelBooking(appointmentId, day, time) {
     await deleteDoc(doc(db, "bookedSlots", slotId));
 
     showSuccessPopup("התור בוטל בהצלחה");
-    await loadAppointments();
-}
-
-async function markArrivedPaid(appointmentId, day, time) {
-    const appointmentRef = doc(db, "appointments", appointmentId);
-    const appointmentSnap = await getDoc(appointmentRef);
-
-    if (!appointmentSnap.exists()) return;
-
-    const appointment = appointmentSnap.data();
-
-    let amount = getServicePrice(appointment.service);
-
-    if (appointment.source === "admin") {
-        const manualAmount = Number(await showInputPopup("כמה שילם הלקוח?"));
-        if (!manualAmount) return;
-        amount = manualAmount;
-    }
-
-    await addDoc(collection(db, "income"), {
-        type: "appointment",
-        status: "arrived_paid",
-        name: appointment.name,
-        phone: appointment.phone || "",
-        service: appointment.service,
-        amount: amount,
-        day: appointment.day,
-        time: appointment.time,
-        createdAt: new Date()
-    });
-
-    const slotId =
-        day.replaceAll(" ", "_").replaceAll("/", "-") +
-        "_" +
-        time.replace(":", "-");
-
-    await deleteDoc(doc(db, "appointments", appointmentId));
-    await deleteDoc(doc(db, "bookedSlots", slotId));
-
-    showSuccessPopup("התור נשמר כהגיע ושילם");
-    await loadAppointments();
-}
-
-async function markNoShow(appointmentId, day, time) {
-    const appointmentRef = doc(db, "appointments", appointmentId);
-    const appointmentSnap = await getDoc(appointmentRef);
-
-    if (!appointmentSnap.exists()) return;
-
-    const appointment = appointmentSnap.data();
-
-    await addDoc(collection(db, "income"), {
-        type: "appointment",
-        status: "no_show",
-        name: appointment.name,
-        phone: appointment.phone || "",
-        service: appointment.service,
-        amount: 0,
-        day: appointment.day,
-        time: appointment.time,
-        createdAt: new Date()
-    });
-
-    const slotId =
-        day.replaceAll(" ", "_").replaceAll("/", "-") +
-        "_" +
-        time.replace(":", "-");
-
-    await deleteDoc(doc(db, "appointments", appointmentId));
-    await deleteDoc(doc(db, "bookedSlots", slotId));
-
-    showSuccessPopup("התור סומן כלקוח שלא הגיע");
     await loadAppointments();
 }
 
@@ -335,7 +245,7 @@ async function registerWalkIn(day, time) {
         createdAt: new Date()
     });
 
-    await addDoc(collection(db, "appointments"), {
+    await setDoc(doc(db, "appointments", slotId), {
         name: name,
         phone: "",
         service: service,
@@ -349,32 +259,6 @@ async function registerWalkIn(day, time) {
     await loadAppointments();
 }
 
-async function addManualIncome() {
-    const name = document.getElementById("manualName").value.trim();
-    const description = document.getElementById("manualDescription").value.trim();
-    const amount = Number(document.getElementById("manualAmount").value);
-
-    if (!name || !description || !amount) {
-        showSuccessPopup("נא למלא שם, פעולה וסכום");
-        return;
-    }
-
-    await addDoc(collection(db, "income"), {
-        type: "manual",
-        status: "paid",
-        name: name,
-        description: description,
-        amount: amount,
-        createdAt: new Date()
-    });
-
-    showSuccessPopup("הפעולה נשמרה להכנסות");
-
-    document.getElementById("manualName").value = "";
-    document.getElementById("manualDescription").value = "";
-    document.getElementById("manualAmount").value = "";
-}
-
 function showInputPopup(label) {
     return new Promise((resolve) => {
         const popup = document.createElement("div");
@@ -384,6 +268,7 @@ function showInputPopup(label) {
             <div class="admin-popup-card">
                 <h2>${label}</h2>
                 <input class="admin-popup-input" type="text">
+
                 <div class="admin-popup-actions">
                     <button class="confirm-yes">אישור</button>
                     <button class="confirm-no">ביטול</button>
@@ -418,6 +303,7 @@ function showAdminConfirm(message) {
             <div class="admin-popup-card">
                 <h2>אישור פעולה</h2>
                 <p>${message}</p>
+
                 <div class="admin-popup-actions">
                     <button class="confirm-yes">כן</button>
                     <button class="confirm-no">חזרה</button>
@@ -478,12 +364,9 @@ async function checkNewActivity() {
 }
 
 window.adminCancelBooking = adminCancelBooking;
-window.markArrivedPaid = markArrivedPaid;
-window.markNoShow = markNoShow;
 window.blockSlot = blockSlot;
 window.unblockSlot = unblockSlot;
 window.registerWalkIn = registerWalkIn;
-window.addManualIncome = addManualIncome;
 window.loadAppointments = loadAppointments;
 
 setInterval(checkNewActivity, 15000);

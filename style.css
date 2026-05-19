@@ -1403,7 +1403,7 @@ body {
 }
 
 .unpaid-card button {
-    background: #8a5a2b;
+    background: #8a5a2b ;
     color: white;
     border: none;
     border-radius: 12px;
@@ -1429,4 +1429,23 @@ body {
     .unpaid-card .admin-whatsapp {
         width: 100%;
     }
+}
+html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.admin-page {
+    padding-top: 0 !important;
+}
+
+.admin-header-bar {
+    margin-top: 0 !important;
+    border-radius: 0 !important;
+}
+.back-admin-arrow {
+    color: #f5e6d3;
+    text-decoration: none;
+    font-size: 28px;
+    font-weight: bold;
 }

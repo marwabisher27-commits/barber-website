@@ -101,6 +101,9 @@ async function showFullWeek() {
                             <button onclick="adminCancelBooking('${appointment.id}', '${appointment.day}', '${appointment.time}')">
                                 ביטול תור
                             </button>
+                            <button onclick="markUnpaid('${appointment.id}', '${appointment.day}', '${appointment.time}')">
+    לא שולם
+</button>
                         `;
 
                     const phoneText = appointment.phone ? `<p>${appointment.phone}</p>` : "";
@@ -376,7 +379,35 @@ window.blockSlot = blockSlot;
 window.unblockSlot = unblockSlot;
 window.registerWalkIn = registerWalkIn;
 window.loadAppointments = loadAppointments;
+async function markUnpaid(appointmentId, day, time) {
+    const appointmentSnap = await getDoc(doc(db, "appointments", appointmentId));
+    if (!appointmentSnap.exists()) return;
 
+    const appointment = appointmentSnap.data();
+
+    const amount = Number(await showInputPopup("כמה צריך לשלם?"));
+    if (!amount) return;
+
+    await addDoc(collection(db, "unpaid"), {
+        name: appointment.name,
+        phone: appointment.phone || "",
+        service: appointment.service,
+        amount: amount,
+        day: day,
+        time: time,
+        createdAt: new Date()
+    });
+
+    const slotId = day.replaceAll(" ", "_").replaceAll("/", "-") + "_" + time.replace(":", "-");
+
+    await deleteDoc(doc(db, "appointments", appointmentId));
+    await deleteDoc(doc(db, "bookedSlots", slotId));
+
+    showSuccessPopup("נשמר כלקוח שלא שילם");
+    await loadAppointments();
+}
+
+window.markUnpaid = markUnpaid;
 setInterval(checkNewActivity, 15000);
 checkNewActivity();
 loadAppointments();

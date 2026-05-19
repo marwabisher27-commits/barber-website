@@ -1449,3 +1449,85 @@ html, body {
     font-size: 28px;
     font-weight: bold;
 }
+.login-admin-page {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #efe1cf, #d6b895);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.login-admin-box {
+    background: #f8efe3;
+    border: 2px solid #8a5a2b;
+    border-radius: 24px;
+    padding: 35px;
+    width: 90%;
+    max-width: 420px;
+    text-align: center;
+}
+
+.login-admin-logo {
+    width: 90px;
+}
+
+.login-admin-box input {
+    width: 100%;
+    padding: 14px;
+    margin: 10px 0;
+    border: 2px solid #8a5a2b;
+    border-radius: 12px;
+    box-sizing: border-box;
+}
+
+.login-admin-box button,
+.admin-logout {
+    background: #8a5a2b;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 12px 25px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+#loginError {
+    color: #9b2c2c;
+    font-weight: bold;
+}
+@media (max-width: 600px) {
+    .login-admin-page {
+        padding: 20px;
+        box-sizing: border-box;
+    }
+
+    .login-admin-box {
+        width: 100%;
+        padding: 28px 20px;
+        border-radius: 22px;
+    }
+
+    .login-admin-logo {
+        width: 75px;
+    }
+
+    .login-admin-box h1 {
+        font-size: 28px;
+    }
+
+    .login-admin-box input {
+        font-size: 16px;
+        padding: 13px;
+    }
+
+    .login-admin-box button {
+        width: 100%;
+        font-size: 17px;
+        margin-top: 10px;
+    }
+
+    .admin-logout {
+        padding: 8px 14px;
+        font-size: 13px;
+    }
+}

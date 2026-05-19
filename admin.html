@@ -7,7 +7,11 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
+<script>
+    if (localStorage.getItem("adminLoggedIn") !== "true") {
+        location.href = "login.html";
+    }
+</script>
 <section class="admin-page">
     <div class="admin-header-bar">
     <div class="admin-header-title">Ali Kanaan Barber Shop</div>
@@ -17,6 +21,8 @@
 <a href="unpaid.html" class="admin-unpaid-link">
     רשימת לא שולם
 </a>
+<button class="admin-logout" onclick="logoutAdmin()">יציאה</button>
+
     <div id="adminSchedule" class="admin-schedule"></div>
     <footer class="admin-footer">
     © 2026 Ali Kanaan Barber Shop | כל הזכויות שמורות
@@ -33,5 +39,11 @@
     </div>
 </div>
 <script type="module" src="admin.js"></script>
+<script>
+function logoutAdmin() {
+    localStorage.removeItem("adminLoggedIn");
+    location.href = "login.html";
+}
+</script>
 </body>
 </html>

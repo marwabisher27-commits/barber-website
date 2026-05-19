@@ -1365,45 +1365,57 @@ body {
     max-width: 900px;
     margin: 30px auto;
 }
-
 .unpaid-card {
-    background: #f8efe3;
+    background: #fff8ef;
     border: 2px solid #8a5a2b;
-    border-radius: 18px;
-    padding: 22px;
-    margin-bottom: 18px;
+    border-radius: 22px;
+    padding: 28px 22px;
+    margin: 22px auto;
+    max-width: 850px;
     text-align: center;
+    box-shadow: 0 8px 18px rgba(0,0,0,0.12);
 }
 
 .unpaid-card h2 {
+    font-size: 30px;
     color: #2b1d14;
+    margin-bottom: 12px;
 }
 
 .unpaid-card p {
-    font-size: 18px;
+    font-size: 19px;
     color: #2b1d14;
+    margin: 9px 0;
+    font-weight: bold;
+}
+
+.unpaid-card .admin-whatsapp {
+    max-width: 500px;
+    margin: 18px auto 10px;
+}
+
+.unpaid-card .admin-call {
+    width: 55px;
+    height: 45px;
+    margin: 8px auto;
+    padding: 0;
+    font-size: 24px;
 }
 
 .unpaid-card button {
-    margin-top: 12px;
-    padding: 12px 30px;
-    border: none;
-    border-radius: 12px;
     background: #8a5a2b;
     color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 12px 34px;
     font-weight: bold;
+    margin-top: 8px;
 }
-@media (max-width: 600px) {
-    .unpaid-list {
-        width: 100%;
-        padding: 0 12px;
-        box-sizing: border-box;
-    }
 
+@media (max-width: 600px) {
     .unpaid-card {
-        padding: 18px 14px;
-        margin-bottom: 16px;
-        border-radius: 18px;
+        width: calc(100% - 24px);
+        padding: 22px 14px;
     }
 
     .unpaid-card h2 {
@@ -1414,12 +1426,7 @@ body {
         font-size: 16px;
     }
 
-    .unpaid-card button,
-    .unpaid-card .admin-whatsapp,
-    .unpaid-card .admin-call {
+    .unpaid-card .admin-whatsapp {
         width: 100%;
-        display: block;
-        margin-top: 10px;
-        box-sizing: border-box;
     }
 }

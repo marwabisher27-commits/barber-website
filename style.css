@@ -1531,3 +1531,28 @@ html, body {
         font-size: 13px;
     }
 }
+.days-grid {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 12px !important;
+    justify-content: center !important;
+    margin-bottom: 25px !important;
+}
+
+.day-card {
+    min-width: 110px !important;
+    padding: 14px 10px !important;
+    background: #fff8ef !important;
+    border: 2px solid #8a5a2b !important;
+    border-radius: 16px !important;
+    text-align: center !important;
+    cursor: pointer !important;
+}
+
+.times-grid {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 10px !important;
+    justify-content: center !important;
+    min-height: 80px !important;
+} 

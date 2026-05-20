@@ -432,6 +432,7 @@ async function enableNotifications() {
         showSuccessPopup("ההתראות הופעלו בהצלחה");
     } catch (error) {
         console.error(error);
+        alert(error.message);
         showSuccessPopup("שגיאה בהפעלת התראות");
     }
 }

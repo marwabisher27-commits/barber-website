@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <title>כניסת מנהל</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#2b1d14">
 </head>
 <body>
 
@@ -22,5 +24,10 @@
 </section>
 
 <script type="module" src="login.js"></script>
+<script>
+if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("service-worker.js");
+}
+</script>
 </body>
 </html>

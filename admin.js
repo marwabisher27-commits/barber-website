@@ -1,6 +1,5 @@
 import { db, collection, doc, deleteDoc } from "./firebase.js";
-import { getDocs, getDoc, setDoc, addDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
-import { messaging } from "./firebase.js";
+import { getDocs, getDoc, setDoc, addDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";import { messaging } from "./firebase.js";
 import { getToken } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-messaging.js";
 const scheduleBox = document.getElementById("adminSchedule");
 
@@ -409,6 +408,7 @@ async function markUnpaid(appointmentId, day, time) {
 }
 
 window.markUnpaid = markUnpaid;
+import { getDocs, getDoc, setDoc, addDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 setInterval(checkNewActivity, 15000);
 checkNewActivity();
 async function enableNotifications() {

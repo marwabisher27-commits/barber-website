@@ -9,12 +9,12 @@
 </head>
 <body>
 
-<section class="login-admin-page">
-    <div class="login-admin-box">
+<section class="login-admin-page admin-login-bg">
+    <div class="login-admin-box login-glass">
         <img src="images/logo.png" class="login-admin-logo">
         <h1>כניסת מנהל</h1>
 
-        <input type="email" id="adminEmail" placeholder="אימייל">
+        <input type="email" id="adminEmail" placeholder="שם משתמש / אימייל">
         <input type="password" id="adminPassword" placeholder="סיסמה">
 
         <button onclick="adminLogin()">כניסה</button>
@@ -22,7 +22,6 @@
         <p id="loginError"></p>
     </div>
 </section>
-
 <script type="module" src="login.js"></script>
 <script>
 if ("serviceWorker" in navigator) {

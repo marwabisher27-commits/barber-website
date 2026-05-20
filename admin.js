@@ -420,8 +420,13 @@ async function enableNotifications() {
             return;
         }
 
+        const registration = await navigator.serviceWorker.register(
+            "./firebase-messaging-sw.js"
+        );
+
         const token = await getToken(messaging, {
-            vapidKey: "BKAQ7slaq_rA5DlFngXXFdoaRSXmfu7gUxYHqjZKJp_ILesE5q7IzNXymKiaxPTQ5Ar51v7jzzwq5LVkfYms8bo"
+            vapidKey: "BKAQ7slaq_rA5DlFngXXFdoaRSXmfu7gUxYHqjZKJp_ILesE5q7IzNXymKiaxPTQ5Ar51v7jzzwq5LVkfYms8bo",
+            serviceWorkerRegistration: registration
         });
 
         await setDoc(doc(db, "adminTokens", token), {
@@ -436,6 +441,5 @@ async function enableNotifications() {
         showSuccessPopup("שגיאה בהפעלת התראות");
     }
 }
-
 window.enableNotifications = enableNotifications;
 loadAppointments();

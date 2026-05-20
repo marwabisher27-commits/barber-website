@@ -1,6 +1,7 @@
 import { db, collection, doc, deleteDoc } from "./firebase.js";
 import { getDocs, getDoc, setDoc, addDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
-
+import { messaging } from "./firebase.js";
+import { getToken } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-messaging.js";
 const scheduleBox = document.getElementById("adminSchedule");
 
 const workingHours = {
@@ -410,4 +411,30 @@ async function markUnpaid(appointmentId, day, time) {
 window.markUnpaid = markUnpaid;
 setInterval(checkNewActivity, 15000);
 checkNewActivity();
+async function enableNotifications() {
+    try {
+        const permission = await Notification.requestPermission();
+
+        if (permission !== "granted") {
+            showSuccessPopup("לא אושרו התראות");
+            return;
+        }
+
+        const token = await getToken(messaging, {
+            vapidKey: "BKAQ7slaq_rA5DlFngXXFdoaRSXmfu7gUxYHqjZKJp_ILesE5q7IzNXymKiaxPTQ5Ar51v7jzzwq5LVkfYms8bo"
+        });
+
+        await setDoc(doc(db, "adminTokens", token), {
+            token: token,
+            createdAt: new Date()
+        });
+
+        showSuccessPopup("ההתראות הופעלו בהצלחה");
+    } catch (error) {
+        console.error(error);
+        showSuccessPopup("שגיאה בהפעלת התראות");
+    }
+}
+
+window.enableNotifications = enableNotifications;
 loadAppointments();

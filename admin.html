@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ניהול תורים</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#2b1d14">
 </head>
 <body>
 <script>
@@ -22,7 +24,9 @@
     רשימת לא שולם
 </a>
 <button class="admin-logout" onclick="logoutAdmin()">יציאה</button>
-
+<button class="admin-logout" onclick="enableNotifications()">
+    הפעל התראות
+</button>
     <div id="adminSchedule" class="admin-schedule"></div>
     <footer class="admin-footer">
     © 2026 Ali Kanaan Barber Shop | כל הזכויות שמורות

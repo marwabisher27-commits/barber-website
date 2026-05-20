@@ -1531,7 +1531,7 @@ html, body {
         font-size: 13px;
     }
 }
-.days-grid {
+.booking-page .days-grid {
     display: flex !important;
     flex-wrap: wrap !important;
     gap: 12px !important;
@@ -1539,7 +1539,7 @@ html, body {
     margin-bottom: 25px !important;
 }
 
-.day-card {
+.booking-page .day-card {
     min-width: 110px !important;
     padding: 14px 10px !important;
     background: #fff8ef !important;
@@ -1549,7 +1549,7 @@ html, body {
     cursor: pointer !important;
 }
 
-.times-grid {
+.booking-page .times-grid {
     display: flex !important;
     flex-wrap: wrap !important;
     gap: 10px !important;

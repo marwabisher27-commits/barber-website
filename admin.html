@@ -1,53 +1,34 @@
-<!DOCTYPE html>
-<html lang="he" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ניהול תורים</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#2b1d14">
-</head>
-<body>
-<script>
-    if (localStorage.getItem("adminLoggedIn") !== "true") {
-        location.href = "login.html";
-    }
-</script>
 <section class="admin-page">
     <div class="admin-header-bar">
-    <div class="admin-header-title">Ali Kanaan Barber Shop</div>
-    <img src="images/logo.png" class="admin-header-logo" alt="logo">
-</div>
-    <h1>ניהול תורים</h1>
-<a href="unpaid.html" class="admin-unpaid-link">
-    רשימת לא שולם
-</a>
-<button class="admin-logout" onclick="logoutAdmin()">יציאה</button>
-<button class="admin-logout" onclick="enableNotifications()">
-    הפעל התראות
-</button>
-    <div id="adminSchedule" class="admin-schedule"></div>
-    <footer class="admin-footer">
-    © 2026 Ali Kanaan Barber Shop | כל הזכויות שמורות
-</footer>
-</section>
-<div id="customPopup" class="custom-popup">
-    <div class="popup-box">
-        <p id="popupText"></p>
-
-        <div class="popup-buttons">
-            <button id="confirmBtn">אישור</button>
-            <button id="cancelBtn">ביטול</button>
-        </div>
+        <div class="admin-header-title">Ali Kanaan Barber Shop</div>
+        <img src="images/logo.png" class="admin-header-logo" alt="logo">
     </div>
-</div>
-<script type="module" src="admin.js"></script>
-<script>
-function logoutAdmin() {
-    localStorage.removeItem("adminLoggedIn");
-    location.href = "login.html";
-}
-</script>
-</body>
-</html>
+
+    <h1>ניהול תורים</h1>
+
+    <div class="admin-top-actions">
+        <a href="unpaid.html" class="admin-unpaid-link">רשימת לא שולם</a>
+        <button class="admin-logout" onclick="logoutAdmin()">יציאה</button>
+    </div>
+
+    <div class="admin-filter-box">
+        <select id="adminMonth"></select>
+        <select id="adminYear"></select>
+    </div>
+
+    <div class="admin-week-nav">
+       <button id="prevWeekBtn" class="week-arrow">❮</button>
+<span id="weekRange"></span>
+<button id="nextWeekBtn" class="week-arrow">❯</button>
+    </div>
+
+    <div id="adminDays" class="admin-days-cards"></div>
+
+    <div id="adminDaySchedule" class="admin-day-schedule"></div>
+
+    <div id="adminClientDetails" class="admin-client-details"></div>
+
+    <footer class="admin-footer">
+        ©️ 2026 Ali Kanaan Barber Shop | כל הזכויות שמורות
+    </footer>
+</section>

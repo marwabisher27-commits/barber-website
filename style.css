@@ -1805,3 +1805,52 @@ textarea {
     font-weight: bold;
 }
 }
+.client-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 99999;
+    padding: 20px;
+}
+
+.client-modal-card {
+    position: relative;
+    background: #2b1d14;
+    color: white;
+    width: 90%;
+    max-width: 430px;
+    border-radius: 22px;
+    padding: 28px 22px;
+    text-align: center;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.35);
+}
+
+.client-close {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: #b30000 !important;
+    color: white !important;
+    border: none;
+    border-radius: 50%;
+    width: 34px;
+    height: 34px;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.client-modal-card p {
+    font-size: 18px;
+    margin: 10px 0;
+}
+
+.client-modal-card .admin-whatsapp,
+.client-modal-card .admin-call,
+.client-modal-card button {
+    width: 100%;
+    display: block;
+    margin-top: 10px;
+}

@@ -82,18 +82,20 @@ function buildFilters() {
         `;
     }
 
-    yearSelect.innerHTML = "";
+    const currentYear = new Date().getFullYear();
 
-    for (let y = selectedYear - 2; y <= selectedYear + 2; y++) {
-        yearSelect.innerHTML += `
-            <option value="${y}">
-                ${y}
-            </option>
-        `;
-    }
+yearSelect.innerHTML = "";
 
-    monthSelect.value = selectedMonth;
-    yearSelect.value = selectedYear;
+for (let y = currentYear; y <= currentYear + 5; y++) {
+    yearSelect.innerHTML += `
+        <option value="${y}">
+            ${y}
+        </option>
+    `;
+}
+
+selectedYear = currentYear;
+yearSelect.value = selectedYear;
 }
 
 async function loadAppointments() {
@@ -232,21 +234,31 @@ function showClientDetails(id) {
         `;
 
     detailsBox.innerHTML = `
-        <div class="admin-slot busy">
-            <strong>${appointment.time}</strong>
-            <p>${appointment.name}</p>
-            <p>${appointment.phone || ""}</p>
-            <p>${appointment.service}</p>
+        <div class="client-modal">
+            <div class="client-modal-card">
+                <button class="client-close" onclick="closeClientDetails()">✕</button>
 
-            ${appointment.phone ? `
-                <a class="admin-whatsapp" href="https://wa.me/972${appointment.phone.substring(1)}" target="_blank">WhatsApp</a>
-                <a class="admin-call" href="tel:${appointment.phone}">📞</a>
-            ` : ""}
+                <strong>${appointment.time}</strong>
+                <p>${appointment.name}</p>
+                <p>${appointment.phone || ""}</p>
+                <p>${appointment.service}</p>
 
-            ${buttons}
+                ${appointment.phone ? `
+                    <a class="admin-whatsapp" href="https://wa.me/972${appointment.phone.substring(1)}" target="_blank">WhatsApp</a>
+                    <a class="admin-call" href="tel:${appointment.phone}">📞</a>
+                ` : ""}
+
+                ${buttons}
+            </div>
         </div>
     `;
 }
+
+function closeClientDetails() {
+    detailsBox.innerHTML = "";
+}
+
+window.closeClientDetails = closeClientDetails;
 
 async function adminCancelBooking(appointmentId, day, time) {
     const ok = await showAdminConfirm("לבטל את התור הזה?");

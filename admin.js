@@ -82,17 +82,13 @@ function buildFilters() {
         `;
     }
 
-    const currentYear = new Date().getFullYear();
+   const currentYear = new Date().getFullYear();
 
-yearSelect.innerHTML = "";
-
-for (let y = currentYear; y <= currentYear + 5; y++) {
-    yearSelect.innerHTML += `
-        <option value="${y}">
-            ${y}
-        </option>
-    `;
-}
+yearSelect.innerHTML = `
+    <option value="${currentYear}">
+        ${currentYear}
+    </option>
+`;
 
 selectedYear = currentYear;
 yearSelect.value = selectedYear;
@@ -420,7 +416,11 @@ function showAdminConfirm(message) {
         };
     });
 }
-
+function playBeep() {
+    const audio = new Audio("https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg");
+    audio.volume = 1;
+    audio.play().catch(() => {});
+}
 function showSuccessPopup(message) {
     const toast = document.createElement("div");
     toast.className = "admin-toast";

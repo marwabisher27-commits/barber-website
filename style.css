@@ -1854,3 +1854,22 @@ textarea {
     display: block;
     margin-top: 10px;
 }
+.enable-notifications-btn{
+    background:#2b1d14;
+    color:white;
+    border:none;
+    padding:14px 24px;
+    border-radius:14px;
+    font-size:18px;
+    font-weight:bold;
+    cursor:pointer;
+    transition:0.3s;
+}
+
+.enable-notifications-btn:hover{
+    transform:scale(1.05);
+}
+
+.enable-notifications-btn.enabled{
+    background:#2e7d32;
+}

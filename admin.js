@@ -484,10 +484,15 @@ async function enableNotifications() {
             serviceWorkerRegistration: registration
         });
 
-        await setDoc(doc(db, "adminTokens", token), {
+        await setDoc(doc(db, "adminTokens", "mainAdmin"), {
             token: token,
             createdAt: new Date()
         });
+
+        const btn = document.getElementById("enableNotificationsBtn");
+        btn.innerHTML = "✅ התראות פעילות";
+        btn.classList.add("enabled");
+        btn.disabled = true;
 
         showSuccessPopup("ההתראות הופעלו בהצלחה");
     } catch (error) {
@@ -496,7 +501,6 @@ async function enableNotifications() {
         showSuccessPopup("שגיאה בהפעלת התראות");
     }
 }
-
 window.enableNotifications = enableNotifications;
 const enableBtn = document.getElementById("enableNotificationsBtn");
 

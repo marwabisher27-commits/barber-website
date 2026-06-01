@@ -498,5 +498,8 @@ async function enableNotifications() {
 }
 
 window.enableNotifications = enableNotifications;
+const enableBtn = document.getElementById("enableNotificationsBtn");
+
+enableBtn.addEventListener("click", enableNotifications);
 buildFilters();
 loadAppointments();

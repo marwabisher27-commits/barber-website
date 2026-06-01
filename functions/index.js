@@ -40,11 +40,24 @@ exports.sendBookingNotification = onDocumentCreated(
                 body: `${appointment.name} קבע/ה תור ל-${appointment.day} בשעה ${appointment.time}`
             },
             webpush: {
-                notification: {
-                    icon: "/images/logo.png",
-                    badge: "/images/logo.png"
-                }
-            },
+    notification: {
+        icon: "/images/logo.png",
+        badge: "/images/logo.png"
+    },
+    fcmOptions: {
+        link: "https://marwabisher27-commits.github.io/barber-website/admin.html"
+    },
+    headers: {
+        Urgency: "high"
+    }
+},
+apns: {
+    payload: {
+        aps: {
+            badge: 1
+        }
+    }
+},
             tokens: tokens
         };
 

@@ -1873,3 +1873,17 @@ textarea {
 .enable-notifications-btn.enabled{
     background:#2e7d32;
 }
+#enableNotificationsBtn{
+    width: auto;
+    min-width: 190px;
+    height: 58px;
+    padding: 0 22px;
+    border-radius: 18px;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.admin-unpaid-link{
+    min-width: 190px;
+    height: 58px;
+}

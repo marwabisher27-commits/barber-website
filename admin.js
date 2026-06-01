@@ -505,5 +505,8 @@ window.enableNotifications = enableNotifications;
 const enableBtn = document.getElementById("enableNotificationsBtn");
 
 enableBtn.addEventListener("click", enableNotifications);
+if ("clearAppBadge" in navigator) {
+    navigator.clearAppBadge();
+}
 buildFilters();
 loadAppointments();

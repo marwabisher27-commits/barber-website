@@ -1,6 +1,6 @@
-import { db, collection, doc, deleteDoc } from "./firebase.js";
+import { db, collection, doc, deleteDoc, messaging } from "./firebase.js";
 import { getDocs, getDoc, setDoc, addDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
-
+import { getToken } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-messaging.js";
 const daysBox = document.getElementById("adminDays");
 const scheduleBox = document.getElementById("adminDaySchedule");
 const detailsBox = document.getElementById("adminClientDetails");
@@ -463,5 +463,40 @@ window.blockSlot = blockSlot;
 window.unblockSlot = unblockSlot;
 window.showClientDetails = showClientDetails;
 
+async function enableNotifications() {
+    try {
+        if (!("Notification" in window)) {
+            showSuccessPopup("צריך לפתוח מהאפליקציה במסך הבית");
+            return;
+        }
+
+        const permission = await Notification.requestPermission();
+
+        if (permission !== "granted") {
+            showSuccessPopup("לא אושרו התראות");
+            return;
+        }
+
+        const registration = await navigator.serviceWorker.register("./firebase-messaging-sw.js");
+
+        const token = await getToken(messaging, {
+            vapidKey: "BKAQ7slaq_rA5DlFngXXFdoaRSXmfu7gUxYHqjZKJp_ILesE5q7IzNXymKiaxPTQ5Ar51v7jzzwq5LVkfYms8bo",
+            serviceWorkerRegistration: registration
+        });
+
+        await setDoc(doc(db, "adminTokens", token), {
+            token: token,
+            createdAt: new Date()
+        });
+
+        showSuccessPopup("ההתראות הופעלו בהצלחה");
+    } catch (error) {
+        console.error(error);
+        alert(error.message);
+        showSuccessPopup("שגיאה בהפעלת התראות");
+    }
+}
+
+window.enableNotifications = enableNotifications;
 buildFilters();
 loadAppointments();

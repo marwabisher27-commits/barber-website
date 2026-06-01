@@ -10,11 +10,4 @@ firebase.initializeApp({
     appId: "1:90920663626:web:5be4a5377bc9004b30c4b3"
 });
 
-const messaging = firebase.messaging();
-
-messaging.onBackgroundMessage(function(payload) {
-    self.registration.showNotification(payload.notification.title, {
-        body: payload.notification.body,
-        icon: "images/logo.png"
-    });
-});
+firebase.messaging();

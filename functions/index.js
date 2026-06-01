@@ -51,13 +51,7 @@ exports.sendBookingNotification = onDocumentCreated(
         Urgency: "high"
     }
 },
-apns: {
-    payload: {
-        aps: {
-            badge: 1
-        }
-    }
-},
+
             tokens: tokens
         };
 

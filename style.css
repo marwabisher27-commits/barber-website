@@ -1953,3 +1953,12 @@ textarea {
 .admin-slot-buttons button{
     flex: 1;
 }
+.disable-notifications-btn {
+    background: #7a1f1f;
+    color: white;
+    border: none;
+    padding: 14px 22px;
+    border-radius: 14px;
+    font-weight: bold;
+    cursor: pointer;
+}

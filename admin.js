@@ -522,8 +522,32 @@ async function enableNotifications() {
         showSuccessPopup("שגיאה בהפעלת התראות");
     }
 }
+
 window.enableNotifications = enableNotifications;
 const enableBtn = document.getElementById("enableNotificationsBtn");
 
 enableBtn.addEventListener("click", enableNotifications);
+async function disableNotifications() {
+    try {
+        await deleteDoc(doc(db, "adminTokens", "mainAdmin"));
 
+        const enableBtn = document.getElementById("enableNotificationsBtn");
+        const disableBtn = document.getElementById("disableNotificationsBtn");
+
+        enableBtn.innerHTML = "🔔 הפעל התראות";
+        enableBtn.classList.remove("enabled");
+        enableBtn.disabled = false;
+
+        disableBtn.innerHTML = "🔕 ההתראות כבויות";
+
+        showSuccessPopup("ההתראות כובו בהצלחה");
+    } catch (error) {
+        console.error(error);
+        showSuccessPopup("שגיאה בכיבוי התראות");
+    }
+}
+
+window.disableNotifications = disableNotifications;
+
+const disableBtn = document.getElementById("disableNotificationsBtn");
+disableBtn.addEventListener("click", disableNotifications);

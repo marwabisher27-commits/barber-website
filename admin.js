@@ -24,11 +24,19 @@ const workingHours = {
     "שבת": ["10:00", "23:00"]
 };
 
+let isAdminChecked = false;
+
 onAuthStateChanged(auth, function(user) {
     if (!user) {
-        localStorage.removeItem("adminLoggedIn");
-        location.href = "login.html";
+        location.replace("login.html");
+        return;
     }
+
+    isAdminChecked = true;
+    document.body.style.display = "block";
+
+    buildFilters();
+    loadAppointments();
 });
 let allAppointments = [];
 let selectedMonth = new Date().getMonth();
@@ -514,5 +522,3 @@ const enableBtn = document.getElementById("enableNotificationsBtn");
 
 enableBtn.addEventListener("click", enableNotifications);
 
-buildFilters();
-loadAppointments();

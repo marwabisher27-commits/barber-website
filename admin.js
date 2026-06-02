@@ -220,8 +220,11 @@ async function renderDaySchedule(date, fullDay) {
             `;
         } else {
             const action = isPastAppointment(fullDay, time)
-                ? `<span class="past-admin-text">השעה עברה</span>`
-                : `<button onclick="registerWalkIn('${fullDay}', '${time}')">רישום לקוח לשעה זו</button>`;
+    ? `<span class="past-admin-text">השעה עברה</span>`
+    : `
+        <button onclick="registerWalkIn('${fullDay}', '${time}')">רישום לקוח לשעה זו</button>
+        <button onclick="blockSlot('${fullDay}', '${time}')">סגור שעה</button>
+      `;
 
             row.innerHTML = `
                 <strong>${time}</strong>

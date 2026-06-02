@@ -1900,14 +1900,27 @@ textarea {
     box-sizing: border-box;
 }
 
-.admin-top-actions a,
-.admin-top-actions button{
+.admin-actions-card{
+    width: 90%;
+    max-width: 760px;
+    margin: 25px auto;
+    padding: 14px;
+    border: 2px solid #8b5e2e;
+    border-radius: 24px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    box-sizing: border-box;
+}
+
+.admin-actions-card a,
+.admin-actions-card button{
     width: 100% !important;
-    height: 72px !important;
+    height: 70px !important;
     min-width: 0 !important;
     padding: 0 10px !important;
     border-radius: 18px !important;
-    font-size: 18px !important;
+    font-size: 17px !important;
     font-weight: bold !important;
     display: flex !important;
     align-items: center !important;
@@ -1917,16 +1930,17 @@ textarea {
 }
 
 @media (max-width: 600px){
-    .admin-top-actions{
-        max-width: 95%;
+    .admin-actions-card{
+        width: 96%;
+        padding: 8px;
         gap: 8px;
-        padding: 10px;
     }
 
-    .admin-top-actions a,
-    .admin-top-actions button{
+    .admin-actions-card a,
+    .admin-actions-card button{
         height: 58px !important;
         font-size: 13px !important;
         border-radius: 15px !important;
+        line-height: 1.2 !important;
     }
 }

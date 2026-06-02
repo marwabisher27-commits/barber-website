@@ -1887,3 +1887,27 @@ textarea {
     min-width: 190px;
     height: 58px;
 }
+@media (max-width: 600px) {
+    .admin-top-actions{
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: nowrap;
+    }
+
+    .admin-top-actions a,
+    .admin-top-actions button{
+        width: 31%;
+        min-width: 0;
+        height: 58px;
+        padding: 0 6px;
+        font-size: 15px;
+        border-radius: 16px;
+        text-align: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+}

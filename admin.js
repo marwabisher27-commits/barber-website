@@ -1,6 +1,8 @@
 import { db, collection, doc, deleteDoc, messaging } from "./firebase.js";
 import { getDocs, getDoc, setDoc, addDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 import { getToken } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-messaging.js";
+import { auth } from "./firebase.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
 const daysBox = document.getElementById("adminDays");
 const scheduleBox = document.getElementById("adminDaySchedule");
 const detailsBox = document.getElementById("adminClientDetails");
@@ -22,6 +24,12 @@ const workingHours = {
     "שבת": ["10:00", "23:00"]
 };
 
+onAuthStateChanged(auth, function(user) {
+    if (!user) {
+        localStorage.removeItem("adminLoggedIn");
+        location.href = "login.html";
+    }
+});
 let allAppointments = [];
 let selectedMonth = new Date().getMonth();
 let selectedYear = new Date().getFullYear();

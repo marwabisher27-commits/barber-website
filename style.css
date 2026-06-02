@@ -1944,3 +1944,12 @@ textarea {
         line-height: 1.2 !important;
     }
 }
+.admin-slot-buttons{
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+}
+
+.admin-slot-buttons button{
+    flex: 1;
+}

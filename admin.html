@@ -74,11 +74,15 @@
 
 <script type="module" src="admin.js"></script>
 
-<script>
-function logoutAdmin() {
-    localStorage.removeItem("adminLoggedIn");
-    location.href = "login.html";
-}
+<script type="module">
+    import { auth } from "./firebase.js";
+    import { signOut } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
+
+    window.logoutAdmin = async function() {
+        await signOut(auth);
+        localStorage.removeItem("adminLoggedIn");
+        location.replace("login.html");
+    };
 </script>
 
 </body>

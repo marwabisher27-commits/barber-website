@@ -14,7 +14,18 @@
 </style>
 </head>
 <body>
+<script type="module">
+    import { auth } from "./firebase.js";
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
 
+    onAuthStateChanged(auth, function(user) {
+        if (!user) {
+            location.replace("login.html");
+        } else {
+            document.body.style.display = "block";
+        }
+    });
+</script>
 
 
 <section class="admin-page">

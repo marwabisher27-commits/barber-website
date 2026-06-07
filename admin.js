@@ -385,7 +385,7 @@ async function registerWalkIn(day, time) {
         source: "admin"
     });
 
-    showSuccessPopup("הלקוח נרשם בהצלחה");
+    showSuccessPopup("לקוח נרשם בהצלחה");
     await loadAppointments();
 }
 

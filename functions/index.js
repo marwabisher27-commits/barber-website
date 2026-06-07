@@ -64,7 +64,7 @@ exports.sendBookingNotification = onDocumentCreated(
 
         await sendPush(
             "תור חדש",
-            `${appointment.name} קבע/ה תור ל-${appointment.day} בשעה ${appointment.time}`
+            `${appointment.name} קבע  תור ל-${appointment.day} בשעה ${appointment.time}`
         );
     }
 );

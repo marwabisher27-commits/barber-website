@@ -215,18 +215,7 @@ async function confirmBooking() {
         payment: "",
         createdAt: new Date()
     });
-await addDoc(collection(db, "notifications"), {
-    type: "new_booking",
-    title: "תור חדש",
-    message: customerName.value.trim() + " קבע/ה תור ל-" + selectedDay + " בשעה " + selectedTime,
-    name: customerName.value.trim(),
-    phone: customerPhone.value.trim(),
-    service: serviceSelect.value,
-    day: selectedDay,
-    time: selectedTime,
-    seen: false,
-    createdAt: new Date()
-});
+
     localStorage.setItem("appointment", JSON.stringify({
         service: serviceSelect.value,
         day: selectedDay,

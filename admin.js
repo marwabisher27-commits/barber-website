@@ -454,7 +454,7 @@ function showAdminConfirm(message) {
 }
 function playBeep() {
     const audio = new Audio("https://actions.google.com/sounds/v1/cartoon/woodpecker.ogg?hl=he");
-    audio.volume = 1;
+    audio.volume = 2;
     audio.play().catch(() => {});
 }
 function showSuccessPopup(message) {

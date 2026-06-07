@@ -74,7 +74,7 @@ async function cancelBooking(appointmentId, day, time) {
     await addDoc(collection(db, "notifications"), {
         type: "cancel_booking",
         title: "ביטול תור",
-        message: (booking?.name || "לקוח/ה") + " ביטל/ה תור ל-" + day + " בשעה " + time,   
+        message: (booking?.name || "לקוח") + " ביטל תור ל-" + day + " בשעה " + time,     
         phone: booking?.phone || "",
         service: booking?.service || "",
         day: day,

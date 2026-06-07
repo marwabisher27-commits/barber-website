@@ -285,7 +285,18 @@ async function adminCancelBooking(appointmentId, day, time) {
 
     await deleteDoc(doc(db, "appointments", appointmentId));
     await deleteDoc(doc(db, "bookedSlots", slotId));
-
+await addDoc(collection(db, "notifications"), {
+    type: "cancel_booking",
+    title: "ביטול תור",
+    message: "לקוח/ה ביטל/ה תור ל-" + appointment.day + " בשעה " + appointment.time,
+    name: appointment.name || "",
+    phone: appointment.phone || "",
+    service: appointment.service || "",
+    day: appointment.day,
+    time: appointment.time,
+    seen: false,
+    createdAt: new Date()
+});
     showSuccessPopup("התור בוטל בהצלחה");
     await loadAppointments();
 }

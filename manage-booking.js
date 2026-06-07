@@ -1,5 +1,5 @@
 import { db, collection, doc, deleteDoc } from "./firebase.js";
-import { getDocs, query, where } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+import { getDocs, query, where, addDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 
 const phoneInput = document.getElementById("managePhone");
 const resultBox = document.getElementById("bookingResult");
@@ -63,10 +63,26 @@ async function cancelBooking(appointmentId, day, time) {
     const ok = await showConfirmPopup("האם אתה בטוח שברצונך לבטל את התור?");
     if (!ok) return;
 
+    const appointmentSnap = await getDoc(doc(db, "appointments", appointmentId));
+    const booking = appointmentSnap.exists() ? appointmentSnap.data() : null;
+
     const slotId = day.replaceAll(" ", "_").replaceAll("/", "-") + "_" + time.replace(":", "-");
 
     await deleteDoc(doc(db, "appointments", appointmentId));
     await deleteDoc(doc(db, "bookedSlots", slotId));
+
+    await addDoc(collection(db, "notifications"), {
+        type: "cancel_booking",
+        title: "ביטול תור",
+        message: "לקוח/ה ביטל/ה תור ל-" + day + " בשעה " + time,
+        name: booking?.name || "",
+        phone: booking?.phone || "",
+        service: booking?.service || "",
+        day: day,
+        time: time,
+        seen: false,
+        createdAt: new Date()
+    });
 
     showToast("התור בוטל בהצלחה");
     findBooking();

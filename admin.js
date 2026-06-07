@@ -281,22 +281,26 @@ async function adminCancelBooking(appointmentId, day, time) {
     const ok = await showAdminConfirm("לבטל את התור הזה?");
     if (!ok) return;
 
+    const appointment = allAppointments.find(app => app.id === appointmentId);
+
     const slotId = day.replaceAll(" ", "_").replaceAll("/", "-") + "_" + time.replace(":", "-");
 
     await deleteDoc(doc(db, "appointments", appointmentId));
     await deleteDoc(doc(db, "bookedSlots", slotId));
-await addDoc(collection(db, "notifications"), {
-    type: "cancel_booking",
-    title: "ביטול תור",
-    message: "לקוח/ה ביטל/ה תור ל-" + appointment.day + " בשעה " + appointment.time,
-    name: appointment.name || "",
-    phone: appointment.phone || "",
-    service: appointment.service || "",
-    day: appointment.day,
-    time: appointment.time,
-    seen: false,
-    createdAt: new Date()
-});
+
+    await addDoc(collection(db, "notifications"), {
+        type: "cancel_booking",
+        title: "ביטול תור",
+        message: "לקוח/ה ביטל/ה תור ל-" + day + " בשעה " + time,
+        name: appointment?.name || "",
+        phone: appointment?.phone || "",
+        service: appointment?.service || "",
+        day: day,
+        time: time,
+        seen: false,
+        createdAt: new Date()
+    });
+
     showSuccessPopup("התור בוטל בהצלחה");
     await loadAppointments();
 }

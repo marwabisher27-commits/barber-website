@@ -3,6 +3,7 @@ import { getDocs, getDoc, setDoc, addDoc } from "https://www.gstatic.com/firebas
 import { getToken } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-messaging.js";
 import { auth } from "./firebase.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
+
 const daysBox = document.getElementById("adminDays");
 const scheduleBox = document.getElementById("adminDaySchedule");
 const detailsBox = document.getElementById("adminClientDetails");
@@ -14,6 +15,13 @@ const nextWeekBtn = document.getElementById("nextWeekBtn");
 
 const dayNames = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];
 
+const servicePrices = {
+    "תספורת מבוגרים": 70,
+    "תספורת ילדים": 30,
+    "זקן": 20,
+    "תספורת מבוגרים עם זקן": 90
+};
+
 const workingHours = {
     "ראשון": ["14:00", "23:00"],
     "שני": ["14:00", "23:00"],
@@ -24,7 +32,11 @@ const workingHours = {
     "שבת": ["10:00", "23:00"]
 };
 
-let isAdminChecked = false;
+let allAppointments = [];
+let selectedMonth = new Date().getMonth();
+let selectedYear = new Date().getFullYear();
+let currentWeekStart = getWeekStart(new Date());
+let selectedDay = "";
 
 onAuthStateChanged(auth, function(user) {
     if (!user) {
@@ -32,17 +44,14 @@ onAuthStateChanged(auth, function(user) {
         return;
     }
 
-    isAdminChecked = true;
     document.body.style.display = "block";
-
     buildFilters();
     loadAppointments();
 });
-let allAppointments = [];
-let selectedMonth = new Date().getMonth();
-let selectedYear = new Date().getFullYear();
-let currentWeekStart = getWeekStart(new Date());
-let selectedDay = "";
+
+function getAppointmentPrice(app) {
+    return Number(app.price) || servicePrices[app.service] || 0;
+}
 
 function formatDate(date) {
     return String(date.getDate()).padStart(2, "0") + "/" + String(date.getMonth() + 1).padStart(2, "0");
@@ -87,27 +96,21 @@ function isPastAppointment(day, time) {
 }
 
 function buildFilters() {
-
     monthSelect.innerHTML = "";
 
     for (let i = 1; i <= 12; i++) {
-        monthSelect.innerHTML += `
-            <option value="${i - 1}">
-                ${i}
-            </option>
-        `;
+        monthSelect.innerHTML += `<option value="${i - 1}">${i}</option>`;
     }
 
-   const currentYear = new Date().getFullYear();
+    const currentYear = new Date().getFullYear();
 
-yearSelect.innerHTML = `
-    <option value="${currentYear}">
-        ${currentYear}
-    </option>
-`;
+    yearSelect.innerHTML = `
+        <option value="${currentYear}">${currentYear}</option>
+    `;
 
-selectedYear = currentYear;
-yearSelect.value = selectedYear;
+    selectedYear = currentYear;
+    yearSelect.value = selectedYear;
+    monthSelect.value = selectedMonth;
 }
 
 async function loadAppointments() {
@@ -129,6 +132,16 @@ function renderWeek() {
     scheduleBox.innerHTML = "";
     detailsBox.innerHTML = "";
 
+    const monthTotal = allAppointments
+        .filter(app => {
+            if (!app.day) return false;
+            const datePart = app.day.split(" ")[1];
+            if (!datePart) return false;
+            const [d, m] = datePart.split("/").map(Number);
+            return m - 1 === selectedMonth;
+        })
+        .reduce((sum, app) => sum + getAppointmentPrice(app), 0);
+
     const firstDay = new Date(selectedYear, selectedMonth, 1);
     const lastDay = new Date(selectedYear, selectedMonth + 1, 0);
 
@@ -141,7 +154,12 @@ function renderWeek() {
     const weekEnd = new Date(currentWeekStart);
     weekEnd.setDate(currentWeekStart.getDate() + 6);
 
-    weekRange.textContent = formatDate(currentWeekStart) + " - " + formatDate(weekEnd);
+    weekRange.textContent =
+        formatDate(currentWeekStart) +
+        " - " +
+        formatDate(weekEnd) +
+        " | סה״כ החודש: ₪" +
+        monthTotal;
 
     prevWeekBtn.disabled = currentWeekStart.getTime() <= firstWeekStart.getTime();
     nextWeekBtn.disabled = currentWeekStart.getTime() >= lastWeekStart.getTime();
@@ -152,7 +170,9 @@ function renderWeek() {
 
         const fullDay = fullDayText(date);
 
-        const count = allAppointments.filter(app => app.day === fullDay).length;
+        const dayAppointments = allAppointments.filter(app => app.day === fullDay);
+        const count = dayAppointments.length;
+        const dayTotal = dayAppointments.reduce((sum, app) => sum + getAppointmentPrice(app), 0);
 
         const card = document.createElement("div");
         card.className = "admin-day-card";
@@ -163,6 +183,7 @@ function renderWeek() {
             <div>${dayNames[date.getDay()]}</div>
             <strong>${formatDate(date)}</strong>
             <p>לקוחות: ${count}</p>
+            <p>סכום: ₪${dayTotal}</p>
         `;
 
         card.onclick = function() {
@@ -219,14 +240,14 @@ async function renderDaySchedule(date, fullDay) {
                 <button onclick="unblockSlot('${fullDay}', '${time}')">פתח שעה</button>
             `;
         } else {
-           const action = isPastAppointment(fullDay, time)
-    ? `<span class="past-admin-text">השעה עברה</span>`
-    : `
-        <div class="admin-slot-buttons">
-            <button onclick="registerWalkIn('${fullDay}', '${time}')">רישום לקוח לשעה זו</button>
-            <button onclick="blockSlot('${fullDay}', '${time}')">סגור שעה</button>
-        </div>
-      `;
+            const action = isPastAppointment(fullDay, time)
+                ? `<span class="past-admin-text">השעה עברה</span>`
+                : `
+                    <div class="admin-slot-buttons">
+                        <button onclick="registerWalkIn('${fullDay}', '${time}')">רישום לקוח לשעה זו</button>
+                        <button onclick="blockSlot('${fullDay}', '${time}')">סגור שעה</button>
+                    </div>
+                `;
 
             row.innerHTML = `
                 <strong>${time}</strong>
@@ -242,6 +263,8 @@ async function renderDaySchedule(date, fullDay) {
 function showClientDetails(id) {
     const appointment = allAppointments.find(app => app.id === id);
     if (!appointment) return;
+
+    const price = getAppointmentPrice(appointment);
 
     const buttons = isPastAppointment(appointment.day, appointment.time)
         ? `<p class="past-admin-text">התור עבר ולא ניתן לבטל</p>`
@@ -259,6 +282,7 @@ function showClientDetails(id) {
                 <p>${appointment.name}</p>
                 <p>${appointment.phone || ""}</p>
                 <p>${appointment.service}</p>
+                <p>מחיר: ₪${price}</p>
 
                 ${appointment.phone ? `
                     <a class="admin-whatsapp" href="https://wa.me/972${appointment.phone.substring(1)}" target="_blank">WhatsApp</a>
@@ -275,8 +299,6 @@ function closeClientDetails() {
     detailsBox.innerHTML = "";
 }
 
-window.closeClientDetails = closeClientDetails;
-
 async function adminCancelBooking(appointmentId, day, time) {
     const ok = await showAdminConfirm("לבטל את התור הזה?");
     if (!ok) return;
@@ -291,7 +313,7 @@ async function adminCancelBooking(appointmentId, day, time) {
     await addDoc(collection(db, "notifications"), {
         type: "cancel_booking",
         title: "ביטול תור",
-        message: "לקוח  ביטל תור ל-" + day + " בשעה " + time,
+        message: (appointment?.name || "לקוח/ה") + " ביטל/ה תור ל-" + day + " בשעה " + time,
         name: appointment?.name || "",
         phone: appointment?.phone || "",
         service: appointment?.service || "",
@@ -367,6 +389,8 @@ async function registerWalkIn(day, time) {
     const service = await showInputPopup("שירות");
     if (!service) return;
 
+    const price = servicePrices[service] || 0;
+
     const slotId = day.replaceAll(" ", "_").replaceAll("/", "-") + "_" + time.replace(":", "-");
 
     await setDoc(doc(db, "bookedSlots", slotId), {
@@ -379,6 +403,7 @@ async function registerWalkIn(day, time) {
         name,
         phone,
         service,
+        price,
         day,
         time,
         createdAt: new Date(),
@@ -452,11 +477,13 @@ function showAdminConfirm(message) {
         };
     });
 }
+
 function playBeep() {
     const audio = new Audio("https://actions.google.com/sounds/v1/cartoon/woodpecker.ogg?hl=he");
     audio.volume = 1;
     audio.play().catch(() => {});
 }
+
 function showSuccessPopup(message) {
     const toast = document.createElement("div");
     toast.className = "admin-toast";
@@ -491,13 +518,6 @@ nextWeekBtn.onclick = function() {
     selectedDay = "";
     renderWeek();
 };
-
-window.adminCancelBooking = adminCancelBooking;
-window.markUnpaid = markUnpaid;
-window.registerWalkIn = registerWalkIn;
-window.blockSlot = blockSlot;
-window.unblockSlot = unblockSlot;
-window.showClientDetails = showClientDetails;
 
 async function enableNotifications() {
     try {
@@ -538,10 +558,6 @@ async function enableNotifications() {
     }
 }
 
-window.enableNotifications = enableNotifications;
-const enableBtn = document.getElementById("enableNotificationsBtn");
-
-enableBtn.addEventListener("click", enableNotifications);
 async function disableNotifications() {
     try {
         await deleteDoc(doc(db, "adminTokens", "mainAdmin"));
@@ -562,7 +578,15 @@ async function disableNotifications() {
     }
 }
 
+window.closeClientDetails = closeClientDetails;
+window.adminCancelBooking = adminCancelBooking;
+window.markUnpaid = markUnpaid;
+window.registerWalkIn = registerWalkIn;
+window.blockSlot = blockSlot;
+window.unblockSlot = unblockSlot;
+window.showClientDetails = showClientDetails;
+window.enableNotifications = enableNotifications;
 window.disableNotifications = disableNotifications;
 
-const disableBtn = document.getElementById("disableNotificationsBtn");
-disableBtn.addEventListener("click", disableNotifications);
+document.getElementById("enableNotificationsBtn").addEventListener("click", enableNotifications);
+document.getElementById("disableNotificationsBtn").addEventListener("click", disableNotifications);

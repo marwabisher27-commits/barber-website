@@ -5,7 +5,12 @@ const timesGrid = document.getElementById("timesGrid");
 const serviceSelect = document.getElementById("serviceSelect");
 const customerName = document.getElementById("customerName");
 const customerPhone = document.getElementById("customerPhone");
-
+const servicePrices = {
+    "תספורת מבוגרים": 70,
+    "תספורת ילדים": 30,
+    "זקן": 20,
+    "תספורת מבוגרים עם זקן": 90
+};
 let selectedDay = "";
 let selectedTime = "";
 let selectedService = "";
@@ -208,6 +213,7 @@ async function confirmBooking() {
 
     await addDoc(collection(db, "appointments"), {
         service: serviceSelect.value,
+        price: servicePrices[serviceSelect.value] || 0, 
         day: selectedDay,
         time: selectedTime,
         name: customerName.value.trim(),

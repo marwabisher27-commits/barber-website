@@ -1962,3 +1962,8 @@ textarea {
     font-weight: bold;
     cursor: pointer;
 }
+.admin-day-card p:last-child {
+    color: #2e7d32;
+    font-weight: bold;
+    font-size: 15px;
+}

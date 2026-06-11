@@ -5,55 +5,54 @@ const unpaidList = document.getElementById("unpaidList");
 
 async function loadUnpaid() {
     const snapshot = await getDocs(collection(db, "unpaid"));
-    const grouped = {};
-
-    snapshot.forEach(function(document) {
-        const item = document.data();
-        const key = item.phone || item.name;
-
-        if (!grouped[key]) {
-            grouped[key] = {
-                name: item.name,
-                phone: item.phone,
-                total: 0,
-                count: 0,
-                ids: []
-            };
-        }
-
-        grouped[key].total += Number(item.amount);
-        grouped[key].count++;
-        grouped[key].ids.push(document.id);
-    });
 
     unpaidList.innerHTML = "";
 
-    Object.values(grouped).forEach(function(client) {
+    if (snapshot.empty) {
+        unpaidList.innerHTML = "<p>אין לקוחות שלא שילמו</p>";
+        return;
+    }
+
+    snapshot.forEach(function(document) {
+        const client = document.data();
+        const total = Number(client.totalAmount) || 0;
+        const appointments = client.appointments || [];
+
+        let appointmentsHtml = "";
+
+        appointments.forEach(function(app) {
+            appointmentsHtml += `
+                <div class="unpaid-appointment">
+                    <p>שירות: ${app.service || ""}</p>
+                    <p>יום: ${app.day || ""}</p>
+                    <p>שעה: ${app.time || ""}</p>
+                    <p>סכום: ₪${Number(app.amount) || 0}</p>
+                </div>
+            `;
+        });
+
         unpaidList.innerHTML += `
             <div class="unpaid-card">
                 <h2>${client.name}</h2>
                 <p>${client.phone || "אין טלפון"}</p>
-                <p>מספר פעמים: ${client.count}</p>
-                <p>סה״כ לתשלום: ₪${client.total}</p>
+                <p>מספר פעמים: ${appointments.length}</p>
+                <p>סה״כ לתשלום: ₪${total}</p>
+
+                ${appointmentsHtml}
 
                 ${client.phone ? `
                     <a class="admin-whatsapp" href="https://wa.me/972${client.phone.substring(1)}" target="_blank">WhatsApp</a>
                     <a class="admin-call" href="tel:${client.phone}">📞</a>
                 ` : ""}
 
-                <button onclick='markPaid(${JSON.stringify(client.ids)})'>
-                    שולם
-                </button>
+                <button onclick="markPaid('${document.id}')">שולם</button>
             </div>
         `;
     });
 }
 
-async function markPaid(ids) {
-    for (const id of ids) {
-        await deleteDoc(doc(db, "unpaid", id));
-    }
-
+async function markPaid(unpaidId) {
+    await deleteDoc(doc(db, "unpaid", unpaidId));
     loadUnpaid();
 }
 

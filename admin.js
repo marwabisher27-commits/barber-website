@@ -50,6 +50,7 @@ onAuthStateChanged(auth, function(user) {
 });
 
 function getAppointmentPrice(app) {
+    if (app.paymentStatus === "unpaid") return 0;
     return Number(app.price) || servicePrices[app.service] || 0;
 }
 
@@ -341,52 +342,41 @@ async function markUnpaid(appointmentId, day, time) {
     if (!appointmentSnap.exists()) return;
 
     const appointment = appointmentSnap.data();
-    const amount = getAppointmentPrice(appointment);
+    const amount = Number(appointment.price) || servicePrices[appointment.service] || 0;
 
     const unpaidId = (appointment.phone || appointment.name).replaceAll(" ", "_");
-
     const unpaidRef = doc(db, "unpaid", unpaidId);
     const unpaidSnap = await getDoc(unpaidRef);
 
+    let oldAppointments = [];
+    let oldTotal = 0;
+
     if (unpaidSnap.exists()) {
         const oldData = unpaidSnap.data();
-
-        await setDoc(unpaidRef, {
-            name: appointment.name,
-            phone: appointment.phone || "",
-            totalAmount: Number(oldData.totalAmount || 0) + amount,
-            appointments: [
-                ...(oldData.appointments || []),
-                {
-                    service: appointment.service,
-                    amount: amount,
-                    day: day,
-                    time: time
-                }
-            ],
-            updatedAt: new Date()
-        }, { merge: true });
-    } else {
-        await setDoc(unpaidRef, {
-            name: appointment.name,
-            phone: appointment.phone || "",
-            totalAmount: amount,
-            appointments: [
-                {
-                    service: appointment.service,
-                    amount: amount,
-                    day: day,
-                    time: time
-                }
-            ],
-            createdAt: new Date()
-        });
+        oldAppointments = oldData.appointments || [];
+        oldTotal = Number(oldData.totalAmount) || 0;
     }
 
-    const slotId = day.replaceAll(" ", "_").replaceAll("/", "-") + "_" + time.replace(":", "-");
+    await setDoc(unpaidRef, {
+        name: appointment.name,
+        phone: appointment.phone || "",
+        totalAmount: oldTotal + amount,
+        count: oldAppointments.length + 1,
+        appointments: [
+            ...oldAppointments,
+            {
+                service: appointment.service,
+                amount: amount,
+                day: day,
+                time: time
+            }
+        ],
+        updatedAt: new Date()
+    }, { merge: true });
 
-    await deleteDoc(doc(db, "appointments", appointmentId));
-    await deleteDoc(doc(db, "bookedSlots", slotId));
+    await setDoc(doc(db, "appointments", appointmentId), {
+        paymentStatus: "unpaid"
+    }, { merge: true });
 
     showSuccessPopup("נשמר ברשימת לא שולם");
     detailsBox.innerHTML = "";

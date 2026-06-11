@@ -271,10 +271,11 @@ function showClientDetails(id) {
 
     const price = getAppointmentPrice(appointment);
 
-    const buttons = isPastAppointment(appointment.day, appointment.time)
+   const buttons = isPastAppointment(appointment.day, appointment.time)
     ? `
         <p class="past-admin-text">התור עבר ולא ניתן לבטל</p>
         <button onclick="markNoShow('${appointment.id}', '${appointment.day}', '${appointment.time}')">לא הגיע</button>
+        <button onclick="markUnpaid('${appointment.id}', '${appointment.day}', '${appointment.time}')">לא שולם</button>
     `
     : `
         <button onclick="adminCancelBooking('${appointment.id}', '${appointment.day}', '${appointment.time}')">ביטול תור</button>
@@ -340,25 +341,55 @@ async function markUnpaid(appointmentId, day, time) {
     if (!appointmentSnap.exists()) return;
 
     const appointment = appointmentSnap.data();
-    const amount = Number(await showInputPopup("כמה צריך לשלם?"));
-    if (!amount) return;
+    const amount = getAppointmentPrice(appointment);
 
-    await addDoc(collection(db, "unpaid"), {
-        name: appointment.name,
-        phone: appointment.phone || "",
-        service: appointment.service,
-        amount: amount,
-        day: day,
-        time: time,
-        createdAt: new Date()
-    });
+    const unpaidId = (appointment.phone || appointment.name).replaceAll(" ", "_");
+
+    const unpaidRef = doc(db, "unpaid", unpaidId);
+    const unpaidSnap = await getDoc(unpaidRef);
+
+    if (unpaidSnap.exists()) {
+        const oldData = unpaidSnap.data();
+
+        await setDoc(unpaidRef, {
+            name: appointment.name,
+            phone: appointment.phone || "",
+            totalAmount: Number(oldData.totalAmount || 0) + amount,
+            appointments: [
+                ...(oldData.appointments || []),
+                {
+                    service: appointment.service,
+                    amount: amount,
+                    day: day,
+                    time: time
+                }
+            ],
+            updatedAt: new Date()
+        }, { merge: true });
+    } else {
+        await setDoc(unpaidRef, {
+            name: appointment.name,
+            phone: appointment.phone || "",
+            totalAmount: amount,
+            appointments: [
+                {
+                    service: appointment.service,
+                    amount: amount,
+                    day: day,
+                    time: time
+                }
+            ],
+            createdAt: new Date()
+        });
+    }
 
     const slotId = day.replaceAll(" ", "_").replaceAll("/", "-") + "_" + time.replace(":", "-");
 
     await deleteDoc(doc(db, "appointments", appointmentId));
     await deleteDoc(doc(db, "bookedSlots", slotId));
 
-    showSuccessPopup("נשמר כלקוח שלא שילם");
+    showSuccessPopup("נשמר ברשימת לא שולם");
+    detailsBox.innerHTML = "";
     await loadAppointments();
 }
 

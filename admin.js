@@ -267,11 +267,14 @@ function showClientDetails(id) {
     const price = getAppointmentPrice(appointment);
 
     const buttons = isPastAppointment(appointment.day, appointment.time)
-        ? `<p class="past-admin-text">התור עבר ולא ניתן לבטל</p>`
-        : `
-            <button onclick="adminCancelBooking('${appointment.id}', '${appointment.day}', '${appointment.time}')">ביטול תור</button>
-            <button onclick="markUnpaid('${appointment.id}', '${appointment.day}', '${appointment.time}')">לא שולם</button>
-        `;
+    ? `
+        <p class="past-admin-text">התור עבר ולא ניתן לבטל</p>
+        <button onclick="markNoShow('${appointment.id}', '${appointment.day}', '${appointment.time}')">לא הגיע</button>
+    `
+    : `
+        <button onclick="adminCancelBooking('${appointment.id}', '${appointment.day}', '${appointment.time}')">ביטול תור</button>
+        <button onclick="markUnpaid('${appointment.id}', '${appointment.day}', '${appointment.time}')">לא שולם</button>
+    `;
 
     detailsBox.innerHTML = `
         <div class="client-modal">
@@ -386,7 +389,7 @@ async function registerWalkIn(day, time) {
     const phone = await showInputPopup("מספר טלפון");
     if (!phone) return;
 
-    const service = await showInputPopup("שירות");
+    const service = await showServicePopup();
     if (!service) return;
 
     const price = servicePrices[service] || 0;
@@ -400,12 +403,12 @@ async function registerWalkIn(day, time) {
     });
 
     await setDoc(doc(db, "appointments", slotId), {
-        name,
-        phone,
-        service,
-        price,
-        day,
-        time,
+        name: name,
+        phone: phone,
+        service: service,
+        price: price,
+        day: day,
+        time: time,
         createdAt: new Date(),
         source: "admin"
     });
@@ -447,7 +450,41 @@ function showInputPopup(label) {
         };
     });
 }
+function showServicePopup() {
+    return new Promise((resolve) => {
+        const popup = document.createElement("div");
+        popup.className = "admin-popup";
 
+        popup.innerHTML = `
+            <div class="admin-popup-card">
+                <h2>בחר שירות</h2>
+
+                <button class="confirm-yes service-choice" data-service="תספורת מבוגרים">תספורת מבוגרים - ₪70</button>
+                <button class="confirm-yes service-choice" data-service="תספורת ילדים">תספורת ילדים - ₪30</button>
+                <button class="confirm-yes service-choice" data-service="זקן">זקן - ₪20</button>
+
+                <div class="admin-popup-actions">
+                    <button class="confirm-no">ביטול</button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(popup);
+
+        popup.querySelectorAll(".service-choice").forEach((btn) => {
+            btn.onclick = () => {
+                const service = btn.dataset.service;
+                popup.remove();
+                resolve(service);
+            };
+        });
+
+        popup.querySelector(".confirm-no").onclick = () => {
+            popup.remove();
+            resolve("");
+        };
+    });
+}
 function showAdminConfirm(message) {
     return new Promise((resolve) => {
         const popup = document.createElement("div");
@@ -577,7 +614,19 @@ async function disableNotifications() {
         showSuccessPopup("שגיאה בכיבוי התראות");
     }
 }
+async function markNoShow(appointmentId, day, time) {
+    const ok = await showAdminConfirm("הלקוח לא הגיע?");
+    if (!ok) return;
 
+    const slotId = day.replaceAll(" ", "_").replaceAll("/", "-") + "_" + time.replace(":", "-");
+
+    await deleteDoc(doc(db, "appointments", appointmentId));
+    await deleteDoc(doc(db, "bookedSlots", slotId));
+
+    showSuccessPopup("הלקוח סומן כלא הגיע");
+    detailsBox.innerHTML = "";
+    await loadAppointments();
+}
 window.closeClientDetails = closeClientDetails;
 window.adminCancelBooking = adminCancelBooking;
 window.markUnpaid = markUnpaid;
@@ -587,6 +636,6 @@ window.unblockSlot = unblockSlot;
 window.showClientDetails = showClientDetails;
 window.enableNotifications = enableNotifications;
 window.disableNotifications = disableNotifications;
-
+window.markNoShow = markNoShow;
 document.getElementById("enableNotificationsBtn").addEventListener("click", enableNotifications);
 document.getElementById("disableNotificationsBtn").addEventListener("click", disableNotifications);

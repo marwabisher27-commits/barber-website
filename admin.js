@@ -176,7 +176,13 @@ function renderWeek() {
 
         const card = document.createElement("div");
         card.className = "admin-day-card";
+        const today = new Date();
+        const isToday =
+            date.getDate() === today.getDate() &&
+            date.getMonth() === today.getMonth() &&
+            date.getFullYear() === today.getFullYear();
 
+        if (isToday) card.classList.add("today-admin-day");
         if (fullDay === selectedDay) card.classList.add("active");
 
         card.innerHTML = `
@@ -240,14 +246,13 @@ async function renderDaySchedule(date, fullDay) {
                 <button onclick="unblockSlot('${fullDay}', '${time}')">פתח שעה</button>
             `;
         } else {
-            const action = isPastAppointment(fullDay, time)
-                ? `<span class="past-admin-text">השעה עברה</span>`
-                : `
-                    <div class="admin-slot-buttons">
-                        <button onclick="registerWalkIn('${fullDay}', '${time}')">רישום לקוח לשעה זו</button>
-                        <button onclick="blockSlot('${fullDay}', '${time}')">סגור שעה</button>
-                    </div>
-                `;
+            const action = `
+    <div class="admin-slot-buttons">
+        ${isPastAppointment(fullDay, time) ? `<span class="past-admin-text">השעה עברה</span>` : ""}
+        <button onclick="registerWalkIn('${fullDay}', '${time}')">רישום לקוח לשעה זו</button>
+        ${!isPastAppointment(fullDay, time) ? `<button onclick="blockSlot('${fullDay}', '${time}')">סגור שעה</button>` : ""}
+    </div>
+`;
 
             row.innerHTML = `
                 <strong>${time}</strong>

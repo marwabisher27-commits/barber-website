@@ -1967,3 +1967,14 @@ textarea {
     font-weight: bold;
     font-size: 15px;
 }
+.today-admin-day {
+    border: 3px solid #2e7d32 !important;
+    box-shadow: 0 0 15px rgba(46, 125, 50, 0.35);
+}
+
+.today-admin-day::before {
+    display: block;
+    color: #2e7d32;
+    font-weight: bold;
+    margin-bottom: 6px;
+}

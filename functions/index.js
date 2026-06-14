@@ -80,3 +80,36 @@ exports.sendGeneralNotification = onDocumentCreated(
         );
     }
 );
+const TELEGRAM_BOT_TOKEN = "8858442740:AAHONbqZB5T1U10KP1N3vfCVoZOI47Yu1UE";
+const TELEGRAM_CHAT_ID = "5644640617";
+
+exports.sendTelegramBooking = onDocumentCreated(
+    "appointments/{appointmentId}",
+    async (event) => {
+        const appointment = event.data.data();
+
+        const text =
+`🔔 תור חדש
+
+שם: ${appointment.name}
+טלפון: ${appointment.phone}
+שירות: ${appointment.service}
+יום: ${appointment.day}
+שעה: ${appointment.time}`;
+
+        const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+
+        await fetch(url, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                chat_id: TELEGRAM_CHAT_ID,
+                text: text
+            })
+        });
+
+        console.log("Telegram message sent");
+    }
+);

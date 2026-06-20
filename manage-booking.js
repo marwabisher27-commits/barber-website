@@ -3,7 +3,7 @@ import { getDocs, query, where, addDoc, getDoc } from "https://www.gstatic.com/f
 
 const phoneInput = document.getElementById("managePhone");
 const resultBox = document.getElementById("bookingResult");
-
+let foundBookings = {};
 function isPastAppointment(day, time) {
     const datePart = day.split(" ")[1];
     const [dayNum, monthNum] = datePart.split("/").map(Number);
@@ -35,14 +35,14 @@ async function findBooking() {
     querySnapshot.forEach(function(document) {
         const booking = document.data();
         const appointmentId = document.id;
-
+        foundBookings[appointmentId] = booking;
         let buttons = "";
 
         if (isPastAppointment(booking.day, booking.time)) {
             buttons = `<p class="no-change">התור עבר ולא ניתן לבטל או לשנות</p>`;
         } else {
             buttons = `
-                <button onclick="cancelBooking('${appointmentId}', '${booking.day}', '${booking.time}')">ביטול תור</button>
+                <button onclick="cancelBooking('${appointmentId}')">ביטול תור</button>            
                 <button onclick="changeBooking('${appointmentId}', '${booking.day}', '${booking.time}')">שינוי תור</button>
             `;
         }
@@ -59,29 +59,42 @@ async function findBooking() {
     });
 }
 
-async function cancelBooking(appointmentId, day, time) {
+async function cancelBooking(appointmentId) {
     const ok = await showConfirmPopup("האם אתה בטוח שברצונך לבטל את התור?");
     if (!ok) return;
 
-    const appointmentSnap = await getDoc(doc(db, "appointments", appointmentId));
-    const booking = appointmentSnap.exists() ? appointmentSnap.data() : null;
+    let appointment = foundBookings[appointmentId];
 
-    const slotId = day.replaceAll(" ", "_").replaceAll("/", "-") + "_" + time.replace(":", "-");
+    if (!appointment) {
+        const appointmentSnap = await getDoc(doc(db, "appointments", appointmentId));
+        appointment = appointmentSnap.exists() ? appointmentSnap.data() : null;
+    }
 
-    await deleteDoc(doc(db, "appointments", appointmentId));
-    await deleteDoc(doc(db, "bookedSlots", slotId));
+    if (!appointment) {
+        showToast("לא נמצא התור");
+        return;
+    }
+
+    const slotId =
+        appointment.day.replaceAll(" ", "_").replaceAll("/", "-") +
+        "_" +
+        appointment.time.replace(":", "-");
 
     await addDoc(collection(db, "notifications"), {
         type: "cancel_booking",
         title: "ביטול תור",
-        message: (booking?.name || "לקוח") + " ביטל תור ל-" + day + " בשעה " + time,     
-        phone: booking?.phone || "",
-        service: booking?.service || "",
-        day: day,
-        time: time,
+        message: `${appointment.name || "לקוח/ה"} ביטל/ה תור ל-${appointment.day} בשעה ${appointment.time}`,
+        name: appointment.name || "",
+        phone: appointment.phone || "",
+        service: appointment.service || "",
+        day: appointment.day,
+        time: appointment.time,
         seen: false,
         createdAt: new Date()
     });
+
+    await deleteDoc(doc(db, "appointments", appointmentId));
+    await deleteDoc(doc(db, "bookedSlots", slotId));
 
     showToast("התור בוטל בהצלחה");
     findBooking();

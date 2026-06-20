@@ -17,9 +17,9 @@ const dayNames = ["ראשון", "שני", "שלישי", "רביעי", "חמיש�
 
 const servicePrices = {
     "תספורת מבוגרים": 70,
+    "اعدادي": 50,
     "תספורת ילדים": 30,
     "זקן": 20,
-    "תספורת מבוגרים עם זקן": 90
 };
 
 const workingHours = {
@@ -486,7 +486,10 @@ function showServicePopup() {
                 <h2>בחר שירות</h2>
 
                 <button class="confirm-yes service-choice" data-service="תספורת מבוגרים">תספורת מבוגרים - ₪70</button>
-                <button class="confirm-yes service-choice" data-service="תספורת ילדים">תספורת ילדים - ₪30</button>
+                <button class="confirm-yes service-choice" data-service="اعدادي"> إعدادي - ₪50</button>
+                <button class="confirm-yes service-choice" data-service="תספורת ילדים">
+    תספורת ילדים - ابتدائي - ₪30
+</button>
                 <button class="confirm-yes service-choice" data-service="זקן">זקן - ₪20</button>
 
                 <div class="admin-popup-actions">

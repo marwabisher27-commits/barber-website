@@ -1,7 +1,8 @@
 const { setGlobalOptions } = require("firebase-functions");
 const { onDocumentCreated } = require("firebase-functions/v2/firestore");
 const admin = require("firebase-admin");
-
+const { onSchedule } = require("firebase-functions/v2/scheduler");
+process.env.TZ = "Asia/Jerusalem";
 setGlobalOptions({ maxInstances: 10 });
 
 admin.initializeApp();
@@ -80,11 +81,18 @@ exports.sendGeneralNotification = onDocumentCreated(
         );
     }
 );
-const TELEGRAM_BOT_TOKEN = "8858442740:AAHONbqZB5T1U10KP1N3vfCVoZOI47Yu1UE";
-const TELEGRAM_CHAT_ID = "5644640617";
+
+
+const { defineSecret } = require("firebase-functions/params");
+
+const TELEGRAM_BOT_TOKEN = defineSecret("TELEGRAM_BOT_TOKEN");
+const TELEGRAM_CHAT_ID = defineSecret("TELEGRAM_CHAT_ID");
 
 exports.sendTelegramBooking = onDocumentCreated(
-    "appointments/{appointmentId}",
+    {
+        document: "appointments/{appointmentId}",
+        secrets: [TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID]
+    },
     async (event) => {
         const appointment = event.data.data();
 
@@ -97,7 +105,10 @@ exports.sendTelegramBooking = onDocumentCreated(
 יום: ${appointment.day}
 שעה: ${appointment.time}`;
 
-        const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+        const token = TELEGRAM_BOT_TOKEN.value();
+        const chatId = TELEGRAM_CHAT_ID.value();
+
+        const url = `https://api.telegram.org/bot${token}/sendMessage`;
 
         await fetch(url, {
             method: "POST",
@@ -105,11 +116,130 @@ exports.sendTelegramBooking = onDocumentCreated(
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
-                chat_id: TELEGRAM_CHAT_ID,
+                chat_id: chatId,
                 text: text
             })
         });
 
         console.log("Telegram message sent");
+    }
+);
+exports.sendTelegramCancel = onDocumentCreated(
+    {
+        document: "notifications/{notificationId}",
+        secrets: [TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID]
+    },
+    async (event) => {
+        const data = event.data.data();
+
+        if (data.type !== "cancel_booking") {
+            return;
+        }
+
+        const text =
+`❌ ביטול תור
+
+שם: ${data.name || "לא ידוע"}
+טלפון: ${data.phone || ""}
+שירות: ${data.service || ""}
+יום: ${data.day}
+שעה: ${data.time}`;
+
+        const token = TELEGRAM_BOT_TOKEN.value();
+        const chatId = TELEGRAM_CHAT_ID.value();
+
+        const url = `https://api.telegram.org/bot${token}/sendMessage`;
+
+        await fetch(url, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                chat_id: chatId,
+                text: text
+            })
+        });
+
+        console.log("Telegram cancel message sent");
+    }
+);
+exports.sendTelegramReminders = onSchedule(
+    {
+        schedule: "every 5 minutes",
+        timeZone: "Asia/Jerusalem",
+        secrets: [TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID]
+    },
+    async () => {
+        const now = new Date();
+        const reminderStart = new Date(now.getTime() + 25 * 60 * 1000);
+        const reminderEnd = new Date(now.getTime() + 35 * 60 * 1000);
+
+        const snap = await admin.firestore()
+            .collection("appointments")
+            .get();
+
+        const token = TELEGRAM_BOT_TOKEN.value();
+        const chatId = TELEGRAM_CHAT_ID.value();
+
+        for (const docSnap of snap.docs) {
+            const appointment = docSnap.data();
+
+            if (appointment.reminderSent === true) continue;
+            if (!appointment.day || !appointment.time) continue;
+
+            const datePart = appointment.day.split(" ")[1];
+            if (!datePart) continue;
+
+            const [day, month] = datePart.split("/").map(Number);
+            const [hour, minute] = appointment.time.split(":").map(Number);
+
+            const appointmentDate = new Date(
+                now.getFullYear(),
+                month - 1,
+                day,
+                hour,
+                minute,
+                0,
+                0
+            );
+
+            if (appointmentDate <= now) {
+                await docSnap.ref.set({ reminderSent: true }, { merge: true });
+                continue;
+            }
+
+            if (appointmentDate >= reminderStart && appointmentDate <= reminderEnd) {
+                const text =
+`⏰ תזכורת תור
+
+בעוד כחצי שעה יש תור:
+
+שם: ${appointment.name}
+טלפון: ${appointment.phone || ""}
+שירות: ${appointment.service}
+יום: ${appointment.day}
+שעה: ${appointment.time}`;
+
+                const url = `https://api.telegram.org/bot${token}/sendMessage`;
+
+                await fetch(url, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        chat_id: chatId,
+                        text: text
+                    })
+                });
+
+                await docSnap.ref.set({
+                    reminderSent: true
+                }, { merge: true });
+
+                console.log("Telegram reminder sent");
+            }
+        }
     }
 );

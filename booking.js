@@ -7,7 +7,8 @@ const customerName = document.getElementById("customerName");
 const customerPhone = document.getElementById("customerPhone");
 const servicePrices = {
     "תספורת מבוגרים": 70,
-    "תספורת ילדים": 30,
+    "اعدادي": 50,
+    "תספורת ילדים+ابتدائي": 30,
     "זקן": 20,
     "תספורת מבוגרים עם זקן": 90
 };

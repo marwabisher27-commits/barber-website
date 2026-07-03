@@ -33,11 +33,7 @@ async function loadUnpaid() {
         unpaidList.innerHTML += `
             <div class="unpaid-card">
                 <h2>${client.name || "לקוח"}</h2>
-                <p>${client.phone || "אין טלפון"}</p>
-                <p>מספר פעמים: ${appointments.length}</p>
                 <p>סה״כ לתשלום: ₪${total}</p>
-
-                ${appointmentsHtml}
 
                 ${client.phone ? `
                     <a class="admin-whatsapp" href="https://wa.me/972${client.phone.substring(1)}" target="_blank">WhatsApp</a>

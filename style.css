@@ -1978,3 +1978,35 @@ textarea {
     font-weight: bold;
     margin-bottom: 6px;
 }
+.unpaid-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.unpaid-card {
+    padding: 14px;
+    border-radius: 14px;
+    display: grid;
+    grid-template-columns: 1fr auto auto auto;
+    align-items: center;
+    gap: 8px;
+}
+
+.unpaid-card h2 {
+    font-size: 22px;
+    margin: 0;
+    text-align: right;
+}
+
+.unpaid-card p {
+    margin: 0;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.unpaid-card button {
+    padding: 10px 12px;
+    font-size: 14px;
+    min-width: 70px;
+}

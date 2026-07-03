@@ -31,20 +31,28 @@ async function loadUnpaid() {
         });
 
         unpaidList.innerHTML += `
-            <div class="unpaid-card">
-                <h2>${client.name || "לקוח"}</h2>
-                <p>סה״כ לתשלום: ₪${total}</p>
+<div class="unpaid-card-row">
 
-                ${client.phone ? `
-                    <a class="admin-whatsapp" href="https://wa.me/972${client.phone.substring(1)}" target="_blank">WhatsApp</a>
-                    <a class="admin-call" href="tel:${client.phone}">📞</a>
-                ` : ""}
+    <div class="unpaid-name">${client.name || "לקוח"}</div>
 
-                <button onclick="editUnpaidPrice('${document.id}', '${client.name || ""}', '${client.phone || ""}', '${total}')">עריכת מחיר</button>
-                <button onclick="markPaid('${document.id}')">שולם</button>
-                <button onclick="deleteUnpaid('${document.id}')">מחיקה</button>
-            </div>
-        `;
+    <div class="unpaid-total">₪${total}</div>
+
+    <div class="unpaid-buttons">
+        <button onclick="editUnpaidPrice('${document.id}','${client.name || ""}','${client.phone || ""}','${total}')">
+            עריכת מחיר
+        </button>
+
+        <button onclick="markPaid('${document.id}')">
+            שולם
+        </button>
+
+        <button onclick="deleteUnpaid('${document.id}')">
+            מחיקה
+        </button>
+    </div>
+
+</div>
+`;
     });
 }
 

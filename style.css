@@ -2010,3 +2010,34 @@ textarea {
     font-size: 14px;
     min-width: 70px;
 }
+.unpaid-card-row{
+    background:#fff;
+    border-radius:14px;
+    padding:15px;
+    margin-bottom:12px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:15px;
+}
+
+.unpaid-name{
+    font-size:26px;
+    font-weight:bold;
+    flex:1;
+}
+
+.unpaid-total{
+    font-size:22px;
+    font-weight:bold;
+    min-width:90px;
+}
+
+.unpaid-buttons{
+    display:flex;
+    gap:8px;
+}
+
+.unpaid-buttons button{
+    padding:8px 14px;
+}

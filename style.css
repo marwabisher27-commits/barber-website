@@ -2010,34 +2010,40 @@ textarea {
     font-size: 14px;
     min-width: 70px;
 }
-.unpaid-card-row{
-    background:#fff;
-    border-radius:14px;
-    padding:15px;
-    margin-bottom:12px;
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:15px;
+.unpaid-card-row {
+    background: #fffaf1;
+    border: 2px solid #9b642b;
+    border-radius: 18px;
+    padding: 18px;
+    margin: 14px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
 }
 
-.unpaid-name{
-    font-size:26px;
-    font-weight:bold;
-    flex:1;
+.unpaid-name {
+    font-size: 28px;
+    font-weight: bold;
+    text-align: center;
 }
 
-.unpaid-total{
-    font-size:22px;
-    font-weight:bold;
-    min-width:90px;
+.unpaid-total {
+    font-size: 22px;
+    font-weight: bold;
+    text-align: center;
 }
 
-.unpaid-buttons{
-    display:flex;
-    gap:8px;
+.unpaid-buttons {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
 }
 
-.unpaid-buttons button{
-    padding:8px 14px;
+.unpaid-buttons button {
+    width: 100%;
+    padding: 12px 8px;
+    font-size: 16px;
+    border-radius: 12px;
 }

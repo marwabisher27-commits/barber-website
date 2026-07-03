@@ -6,7 +6,7 @@
     <title>לקוחות שלא שילמו</title>
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#2b1d14">
+    <meta name="theme-color" content="#2b1d14">
 </head>
 <body>
 <script>
@@ -14,6 +14,7 @@
         location.href = "login.html";
     }
 </script>
+
 <section class="admin-page">
     <div class="admin-header-bar">
         <div class="admin-header-title">Ali Knaan Barber Shop</div>
@@ -22,6 +23,8 @@
     </div>
 
     <h1>לקוחות שלא שילמו</h1>
+
+    <button class="brown-btn" onclick="openManualUnpaidPopup()">➕ הוספה ידנית</button>
 
     <div id="unpaidList" class="unpaid-list"></div>
 </section>
